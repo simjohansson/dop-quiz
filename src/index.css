@@ -280,6 +280,139 @@
   }
 }
 
+/* Lemon squeeze waiting animation (all loops share the 1.6s squeeze beat) */
+.squeeze-scene * {
+  transform-box: fill-box;
+}
+.squeeze-glow {
+  transform-origin: center;
+  animation: squeeze-glow 3.2s ease-in-out infinite;
+}
+.squeeze-lemon {
+  transform-origin: 50% 100%;
+  animation: squeeze-twist 1.6s ease-in-out infinite;
+}
+.squeeze-face-relaxed {
+  animation: squeeze-relaxed 1.6s linear infinite;
+}
+.squeeze-face-strain {
+  opacity: 0;
+  animation: squeeze-strain 1.6s linear infinite;
+}
+.squeeze-sweat {
+  opacity: 0;
+  animation: squeeze-sweat 1.6s ease-in infinite;
+}
+.squeeze-spray {
+  opacity: 0;
+  animation: squeeze-spray 1.6s ease-out infinite;
+}
+.squeeze-stream {
+  stroke-dasharray: 9 5;
+  animation:
+    squeeze-flow 0.35s linear infinite,
+    squeeze-stream-pulse 1.6s ease-in-out infinite;
+}
+.squeeze-drop {
+  opacity: 0;
+  animation: squeeze-drop 1.2s ease-in infinite;
+}
+.squeeze-fill {
+  animation: squeeze-fill 18s ease-in-out infinite;
+}
+.squeeze-wave {
+  animation: squeeze-wave 2.2s linear infinite;
+}
+.squeeze-bubble {
+  opacity: 0;
+  animation: squeeze-bubble 2.6s ease-in infinite;
+}
+.squeeze-ice {
+  transform-origin: center;
+  animation: squeeze-bob 2.4s ease-in-out infinite;
+}
+.squeeze-splash {
+  opacity: 0;
+  animation: squeeze-splash 0.7s ease-out infinite;
+}
+.squeeze-sparkle {
+  transform-origin: center;
+  animation: squeeze-twinkle 2.2s ease-in-out infinite;
+}
+
+@keyframes squeeze-glow {
+  0%, 100% { transform: scale(0.94); opacity: 0.8; }
+  50% { transform: scale(1.04); opacity: 1; }
+}
+@keyframes squeeze-twist {
+  0%, 100% { transform: rotate(0deg) scale(1, 1); }
+  25% { transform: rotate(-8deg) scale(1.05, 0.9); }
+  50% { transform: rotate(7deg) scale(1.07, 0.85); }
+  75% { transform: rotate(-3deg) scale(1.02, 0.94); }
+}
+@keyframes squeeze-relaxed {
+  0%, 14%, 86%, 100% { opacity: 1; }
+  16%, 84% { opacity: 0; }
+}
+@keyframes squeeze-strain {
+  0%, 14%, 86%, 100% { opacity: 0; }
+  16%, 84% { opacity: 1; }
+}
+@keyframes squeeze-sweat {
+  0%, 25% { opacity: 0; transform: translateY(0); }
+  40% { opacity: 1; }
+  75%, 100% { opacity: 0; transform: translateY(9px); }
+}
+@keyframes squeeze-spray {
+  0%, 30% { opacity: 0; transform: translate(0, 0) scale(1); }
+  40% { opacity: 1; }
+  75%, 100% { opacity: 0; transform: translate(var(--dx), 12px) scale(0.5); }
+}
+@keyframes squeeze-flow {
+  to { stroke-dashoffset: -14; }
+}
+@keyframes squeeze-stream-pulse {
+  0%, 100% { stroke-width: 2.5px; opacity: 0.75; }
+  50% { stroke-width: 5px; opacity: 1; }
+}
+@keyframes squeeze-drop {
+  0% { opacity: 0; transform: translateY(0) scale(0.6); }
+  15% { opacity: 1; transform: translateY(6px) scale(1); }
+  100% { opacity: 0.9; transform: translateY(70px) scale(1.1, 1.3); }
+}
+@keyframes squeeze-fill {
+  0% { transform: translateY(64px); }
+  75%, 86% { transform: translateY(0); }
+  100% { transform: translateY(64px); }
+}
+@keyframes squeeze-wave {
+  to { transform: translateX(-40px); }
+}
+@keyframes squeeze-bubble {
+  0% { opacity: 0; transform: translateY(0); }
+  20% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(-52px); }
+}
+@keyframes squeeze-bob {
+  0%, 100% { transform: translateY(0) rotate(-8deg); }
+  50% { transform: translateY(2.5px) rotate(6deg); }
+}
+@keyframes squeeze-splash {
+  0% { opacity: 0; transform: translate(0, 0); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)); }
+}
+@keyframes squeeze-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.2) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(45deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .squeeze-scene * {
+    animation: none !important;
+  }
+}
+
 /* Subtle sunny background pattern */
 .citrus-bg-pattern {
   background-color: #faf9ee;

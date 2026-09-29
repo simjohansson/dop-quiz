@@ -1,6 +1,7 @@
 import React from 'react';
 import { Question } from '../types/game';
 import { CheckCircle2, Clock, Users, ArrowLeft } from 'lucide-react';
+import { LemonSqueezeAnimation } from './LemonSqueezeAnimation';
 
 interface WaitingScreenProps {
   playerName: string;
@@ -23,36 +24,7 @@ export const WaitingScreen: React.FC<WaitingScreenProps> = ({
     <div className="w-full max-w-lg mx-auto flex flex-col min-h-[85vh] justify-between p-4 animate-fade-in">
       {/* Top Banner */}
       <div className="flex flex-col items-center text-center pt-3">
-        {/* Animated Lemon Juicer / Squeezer SVG on Light Background */}
-        <div className="relative mb-3">
-          <svg viewBox="0 0 120 120" className="w-28 h-28 drop-shadow-md">
-            {/* Glass of lemonade */}
-            <path
-              d="M38 52 L44 98 C44 102 48 106 52 106 L68 106 C72 106 76 102 76 98 L82 52 Z"
-              fill="#fef08a"
-              stroke="#ca8a04"
-              strokeWidth="2.5"
-            />
-            {/* Lemonade liquid level */}
-            <path
-              d="M45 74 L48 97 C48 99 50 101 53 101 L67 101 C70 101 72 99 72 97 L75 74 Z"
-              fill="#facc15"
-              className="animate-pulse"
-            />
-            {/* Lemon wedge on glass rim */}
-            <g transform="translate(38, 52) rotate(-35)">
-              <path d="M0 0 A16 16 0 0 1 24 12 Z" fill="#facc15" stroke="#ca8a04" strokeWidth="1.5" />
-              <path d="M4 3 A12 12 0 0 1 20 11 Z" fill="#ffffff" />
-            </g>
-            {/* Lemon squeezer / top lemon pressing down */}
-            <g className="animate-squeeze" transform-origin="60 30">
-              <ellipse cx="60" cy="32" rx="20" ry="14" fill="#facc15" stroke="#ca8a04" strokeWidth="2" />
-              <path d="M50 20 C52 14 60 12 66 18" stroke="#65a30d" strokeWidth="2.5" fill="none" />
-              {/* Droplet falling */}
-              <circle cx="60" cy="56" r="3" fill="#eab308" className="animate-bounce" />
-            </g>
-          </svg>
-        </div>
+        <LemonSqueezeAnimation className="w-44 h-44 mb-1" />
 
         <span className="px-3.5 py-1 text-xs font-black uppercase tracking-wider rounded-full bg-lime-100 border border-lime-400 text-lime-900 mb-2">
           Svaren är inskickade! 🍋
