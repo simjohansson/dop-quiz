@@ -1,0 +1,324 @@
+import React, { useEffect, useState, useMemo } from 'react';
+import { io, Socket } from 'socket.io-client';
+import { QUESTIONS } from './data/questions';
+import { Player, GameState } from './types/game';
+import { JoinScreen } from './components/JoinScreen';
+import { Wizard } from './components/Wizard';
+import { WaitingScreen } from './components/WaitingScreen';
+import { RevealQuestionView } from './components/RevealQuestionView';
+import { LeaderboardView } from './components/LeaderboardView';
+import { AdminPanel } from './components/AdminPanel';
+import { ShieldCheck, ArrowLeft } from 'lucide-react';
+
+export const App: React.FC = () => {
+  // Persistent Player Identity
+  const [playerId] = useState<string>(() => {
+    const saved = localStorage.getItem('lemon_quiz_player_id');
+    if (saved) return saved;
+    const newId = 'p_' + Math.random().toString(36).substring(2, 9);
+    localStorage.setItem('lemon_quiz_player_id', newId);
+    return newId;
+  });
+
+  const [playerName, setPlayerName] = useState<string>(() => {
+    return localStorage.getItem('lemon_quiz_player_name') || '';
+  });
+
+  const [isAdminView, setIsAdminView] = useState<boolean>(false);
+
+  // Local answers state (with local storage backup)
+  const [answers, setAnswers] = useState<Record<number, number>>(() => {
+    try {
+      const saved = localStorage.getItem('lemon_quiz_answers');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const [isSubmittedLocally, setIsSubmittedLocally] = useState<boolean>(() => {
+    return localStorage.getItem('lemon_quiz_submitted') === 'true';
+  });
+
+  // Global Game State (synced via WebSocket)
+  const [gameState, setGameState] = useState<GameState>({
+    roomId: 'default',
+    phase: 'LOBBY',
+    players: {},
+    currentRevealQuestionIndex: 0,
+    isAnswerRevealed: false,
+    isGuessesRevealed: false,
+    startedAt: null,
+  });
+
+  const [socket, setSocket] = useState<Socket | null>(null);
+
+  // Connect to Socket.IO
+  useEffect(() => {
+    const s = io({
+      reconnectionAttempts: 10,
+      timeout: 5000,
+    });
+
+    s.on('connect', () => {
+      // Re-register if name exists
+      if (playerName) {
+        s.emit('join-game', { playerId, name: playerName });
+      }
+    });
+
+    s.on('game-state', (state: GameState) => {
+      setGameState(state);
+    });
+
+    setSocket(s);
+
+    return () => {
+      s.disconnect();
+    };
+  }, [playerId]);
+
+  // Sync player name changes to server and storage
+  const handleJoin = (name: string) => {
+    setPlayerName(name);
+    localStorage.setItem('lemon_quiz_player_name', name);
+    if (socket) {
+      socket.emit('join-game', { playerId, name });
+    }
+  };
+
+  // Answer change handler
+  const handleAnswerChange = (questionId: number, value: number) => {
+    const updated = { ...answers, [questionId]: value };
+    setAnswers(updated);
+    localStorage.setItem('lemon_quiz_answers', JSON.stringify(updated));
+
+    if (socket) {
+      socket.emit('submit-answer', { playerId, questionId, value });
+    }
+  };
+
+  // Submit all answers handler
+  const handleSubmitAll = () => {
+    setIsSubmittedLocally(true);
+    localStorage.setItem('lemon_quiz_submitted', 'true');
+
+    if (socket) {
+      socket.emit('submit-all-answers', { playerId });
+    }
+  };
+
+  // Admin Actions
+  const handleAdminStartReveal = () => {
+    if (socket) {
+      socket.emit('admin-start-reveal');
+    } else {
+      setGameState((prev) => ({ ...prev, phase: 'REVEALING', currentRevealQuestionIndex: 0 }));
+    }
+  };
+
+  const handleAdminNextQuestion = () => {
+    if (socket) {
+      socket.emit('admin-next-question');
+    } else {
+      setGameState((prev) => ({
+        ...prev,
+        currentRevealQuestionIndex: Math.min(
+          QUESTIONS.length - 1,
+          prev.currentRevealQuestionIndex + 1
+        ),
+      }));
+    }
+  };
+
+  const handleAdminPrevQuestion = () => {
+    if (socket) {
+      socket.emit('admin-prev-question');
+    } else {
+      setGameState((prev) => ({
+        ...prev,
+        currentRevealQuestionIndex: Math.max(0, prev.currentRevealQuestionIndex - 1),
+      }));
+    }
+  };
+
+  const handleAdminJumpQuestion = (index: number) => {
+    if (socket) {
+      socket.emit('admin-jump-question', { index });
+    } else {
+      setGameState((prev) => ({ ...prev, currentRevealQuestionIndex: index }));
+    }
+  };
+
+  const handleAdminFinishQuiz = () => {
+    if (socket) {
+      socket.emit('admin-finish-quiz');
+    } else {
+      setGameState((prev) => ({ ...prev, phase: 'LEADERBOARD' }));
+    }
+  };
+
+  const handleAdminAddBots = () => {
+    if (socket) {
+      socket.emit('admin-add-bots');
+    }
+  };
+
+  const handleAdminClearBots = () => {
+    if (socket) {
+      socket.emit('admin-clear-bots');
+    }
+  };
+
+  const handleAdminResetGame = () => {
+    setIsSubmittedLocally(false);
+    localStorage.removeItem('lemon_quiz_submitted');
+    localStorage.removeItem('lemon_quiz_answers');
+    setAnswers({});
+    if (socket) {
+      socket.emit('admin-reset-game');
+    } else {
+      setGameState((prev) => ({
+        ...prev,
+        phase: 'LOBBY',
+        currentRevealQuestionIndex: 0,
+        players: {},
+      }));
+    }
+  };
+
+  // Build full list of players including local player if not in gameState yet
+  const allPlayersList: Player[] = useMemo(() => {
+    const list = Object.values(gameState.players);
+    const existing = list.find((p) => p.id === playerId);
+    if (!existing && playerName) {
+      list.push({
+        id: playerId,
+        name: playerName,
+        answers,
+        isSubmitted: isSubmittedLocally,
+        connected: true,
+      });
+    } else if (existing) {
+      // Sync local answers if server doesn't have them all
+      existing.answers = { ...existing.answers, ...answers };
+      existing.isSubmitted = existing.isSubmitted || isSubmittedLocally;
+    }
+    return list;
+  }, [gameState.players, playerId, playerName, answers, isSubmittedLocally]);
+
+  const readyPlayersCount = allPlayersList.filter((p) => p.isSubmitted).length;
+
+  return (
+    <div className="min-h-screen bg-[#fbfbf2] citrus-bg-pattern flex flex-col justify-between text-slate-900">
+      {/* Top Navbar (Light Mode) */}
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-amber-200/80 px-4 py-2.5 shadow-sm">
+        <div className="max-w-xl mx-auto flex items-center justify-between">
+          {/* Logo / Brand */}
+          <div
+            onClick={() => setIsAdminView(false)}
+            className="flex items-center gap-2 cursor-pointer group"
+          >
+            <span className="text-2xl group-hover:scale-110 transition animate-wiggle">🍋</span>
+            <div className="flex flex-col">
+              <span className="text-base font-black tracking-tight text-slate-900 font-['Space_Grotesk']">
+                Citron-Quizet
+              </span>
+              <span className="text-[10px] font-bold text-amber-700 -mt-1">
+                0–100 Trivia
+              </span>
+            </div>
+          </div>
+
+          {/* Right Header Navigation */}
+          <div className="flex items-center gap-2">
+            {isAdminView ? (
+              <button
+                type="button"
+                onClick={() => setIsAdminView(false)}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold transition hover:bg-amber-200 shadow-sm"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Tillbaka till spelet</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsAdminView(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-amber-200 hover:border-amber-400 text-[11px] font-bold text-slate-700 transition shadow-sm"
+                title="Spelledare / Admin"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                <span>Admin</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content View Switcher */}
+      <main className="flex-1 flex flex-col justify-center">
+        {/* Admin Overlay View */}
+        {isAdminView ? (
+          <AdminPanel
+            players={allPlayersList}
+            gamePhase={gameState.phase}
+            currentQuestionIndex={gameState.currentRevealQuestionIndex}
+            questions={QUESTIONS}
+            onStartReveal={handleAdminStartReveal}
+            onAddBotPlayers={handleAdminAddBots}
+            onClearBots={handleAdminClearBots}
+            onResetGame={handleAdminResetGame}
+            onJumpToQuestion={handleAdminJumpQuestion}
+            onJumpToLeaderboard={handleAdminFinishQuiz}
+            onClose={() => setIsAdminView(false)}
+          />
+        ) : !playerName ? (
+          /* Step 1: Join & Choose Name */
+          <JoinScreen
+            onJoin={handleJoin}
+            onOpenAdmin={() => setIsAdminView(true)}
+          />
+        ) : gameState.phase === 'LEADERBOARD' ? (
+          /* Step 4: Final Podium & Leaderboard */
+          <LeaderboardView
+            players={allPlayersList}
+            questions={QUESTIONS}
+            onRestartQuiz={handleAdminResetGame}
+          />
+        ) : gameState.phase === 'REVEALING' ? (
+          /* Step 3: Question by Question Reveal & Cool 0-100 Spectrum Stats */
+          <RevealQuestionView
+            question={QUESTIONS[gameState.currentRevealQuestionIndex]}
+            questionIndex={gameState.currentRevealQuestionIndex}
+            totalQuestions={QUESTIONS.length}
+            players={allPlayersList}
+            isAdmin={true}
+            onNextQuestion={handleAdminNextQuestion}
+            onPrevQuestion={handleAdminPrevQuestion}
+            onFinishQuiz={handleAdminFinishQuiz}
+          />
+        ) : isSubmittedLocally ? (
+          /* Step 2b: Waiting Screen (waiting for host to start reveal) */
+          <WaitingScreen
+            playerName={playerName}
+            answers={answers}
+            questions={QUESTIONS}
+            totalPlayers={allPlayersList.length}
+            readyPlayers={readyPlayersCount}
+            onEditAnswers={() => setIsSubmittedLocally(false)}
+          />
+        ) : (
+          /* Step 2a: Answering in 1-9 Wizard */
+          <Wizard
+            questions={QUESTIONS}
+            playerName={playerName}
+            answers={answers}
+            onAnswerChange={handleAnswerChange}
+            onSubmit={handleSubmitAll}
+          />
+        )}
+      </main>
+    </div>
+  );
+};
