@@ -2,65 +2,40 @@ import React from 'react';
 import { VisualizerProps } from './types';
 
 interface CandleData {
+  key: number;
   x: number;
   baseY: number;
   h: number;
   cw: number;
-  tier: number;
 }
 
 export const Q8ArneWeise: React.FC<VisualizerProps> = ({ value }) => {
-  // Dynamic Advent Candle Arch positioned on top of the TV mantle
-  // Completely spoiler-free: scales cleanly from 0 to 100 without stopping at 24.
+  // Spoiler-free: no layout break or width cap anywhere near the real answer
   const candleCount = Math.max(0, Math.min(100, value));
+  const tiers = candleCount <= 30 ? 1 : candleCount <= 64 ? 2 : 3;
+  const perTier = Math.ceil(candleCount / tiers);
   const candles: CandleData[] = [];
 
-  if (candleCount > 0) {
-    if (candleCount <= 24) {
-      // Elegant single arch spanning the top of the TV
-      const count = candleCount;
-      const w = Math.min(176.0, 34.0 + count * 6.0);
-      const step = count > 1 ? w / (count - 1) : 0;
-      const startX = 125.0 - w / 2.0;
-
-      for (let i = 0; i < count; i++) {
-        const x = +(startX + i * step).toFixed(1);
-        const distFromCenter = w > 0 ? Math.abs(x - 125.0) / (w / 2.0) : 0;
-        const baseY = 43.0;
-        // Arch curve: peaks at y = 22, tapers to y = 34 at edges
-        const topY = +(22.0 + distFromCenter * 12.0).toFixed(1);
-        const h = +(baseY - topY).toFixed(1);
-        const cw = +Math.min(3.8, Math.max(2.6, 95.0 / count)).toFixed(1);
-        candles.push({ x, baseY, h, cw, tier: 1 });
-      }
-    } else {
-      // For values > 24 (up to 100): multi-tiered festive illumination
-      const tiers = candleCount > 55 ? 3 : 2;
-      const perTier = Math.ceil(candleCount / tiers);
-
-      for (let t = tiers - 1; t >= 0; t--) {
-        const startIdx = t * perTier;
-        const countInTier = Math.max(0, Math.min(perTier, candleCount - startIdx));
-        if (countInTier > 0) {
-          const w = 178.0;
-          const step = countInTier > 1 ? w / (countInTier - 1) : 0;
-          const startX = 125.0 - w / 2.0;
-          const baseY = +(43.0 - t * 3.5).toFixed(1);
-
-          for (let i = 0; i < countInTier; i++) {
-            const x = +(startX + i * step).toFixed(1);
-            const distFromCenter = Math.abs(x - 125.0) / (w / 2.0);
-            const topY = +((21.0 + t * 4.5) + distFromCenter * (9.0 - t * 1.5)).toFixed(1);
-            const h = +(baseY - topY).toFixed(1);
-            const cw = +Math.max(2.0, Math.min(3.2, 70.0 / countInTier)).toFixed(1);
-            candles.push({ x, baseY, h, cw, tier: t });
-          }
-        }
-      }
-    }
+  // Lowest keys go to the back row so paint order stays correct without re-sorting DOM nodes
+  for (let k = 0; k < candleCount; k++) {
+    const row = Math.floor(k / perTier);
+    const t = tiers - 1 - row;
+    const i = k - row * perTier;
+    const countInTier = Math.min(perTier, candleCount - row * perTier);
+    const w = tiers === 1 ? Math.min(178, 22 + countInTier * 5.2) : 178;
+    const step = countInTier > 1 ? w / (countInTier - 1) : 0;
+    const x = +(125 - (countInTier > 1 ? w / 2 : 0) + i * step).toFixed(1);
+    const dist = countInTier > 1 ? Math.abs(x - 125) / (w / 2) : 0;
+    const baseY = 43 - t * 3.5;
+    const topY = 21 + t * 4.5 + dist * (tiers === 1 ? 12 : 9 - t * 1.5);
+    const cw = tiers === 1
+      ? Math.max(2.6, Math.min(3.8, 95 / countInTier))
+      : Math.max(2.0, Math.min(3.2, 70 / countInTier));
+    candles.push({ key: k, x, baseY, h: +(baseY - topY).toFixed(1), cw: +cw.toFixed(1) });
   }
 
-  const glowOpacity = Math.min(0.65, 0.2 + (candleCount / 100.0) * 0.45);
+  const warmth = candleCount / 100;
+  const glowOpacity = Math.min(0.65, 0.2 + warmth * 0.45);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[195px] select-none">
@@ -121,6 +96,10 @@ export const Q8ArneWeise: React.FC<VisualizerProps> = ({ value }) => {
           <clipPath id="crtScreenClipQ8">
             <rect x="30" y="50" width="146" height="98" rx="8" />
           </clipPath>
+
+          <pattern id="scanlinesQ8" width="2" height="2" patternUnits="userSpaceOnUse">
+            <rect width="2" height="0.8" fill="#000000" opacity="0.14" />
+          </pattern>
         </defs>
 
         {/* 1. VARM, LJUS OCH MYSIG JULRUMS-BAKGRUND */}
@@ -134,8 +113,15 @@ export const Q8ArneWeise: React.FC<VisualizerProps> = ({ value }) => {
           ))}
         </g>
 
-        {/* Stor varm gyllene julbelysning / sken bakom TV:n och ljusbågen */}
-        <rect x="0" y="0" width="250" height="152" fill="url(#roomGlowQ8)" style={{ pointerEvents: 'none' }} />
+        {/* Room gets warmer the more candles are lit */}
+        <rect
+          x="0"
+          y="0"
+          width="250"
+          height="152"
+          fill="url(#roomGlowQ8)"
+          style={{ pointerEvents: 'none', opacity: 0.35 + warmth * 0.65, transition: 'opacity 300ms' }}
+        />
 
         {/* Mjukt trägolv i furu/ek nederst */}
         <rect x="0" y="152" width="250" height="23" fill="url(#floorWoodQ8)" />
@@ -178,18 +164,22 @@ export const Q8ArneWeise: React.FC<VisualizerProps> = ({ value }) => {
         <g transform="translate(0, 0)">
           <path d="M -2 -2 Q 18 10 32 6 M 6 0 Q 22 16 36 12 M 0 10 Q 15 22 26 18" stroke="#15803d" strokeWidth="2.5" strokeLinecap="round" />
           <path d="M -2 -2 Q 18 10 32 6 M 6 0 Q 22 16 36 12 M 0 10 Q 15 22 26 18" stroke="#22c55e" strokeWidth="1" strokeLinecap="round" opacity="0.6" />
-          <line x1="24" y1="8" x2="24" y2="18" stroke="#ca8a04" strokeWidth="0.6" />
-          <circle cx="24" cy="22" r="4.2" fill="#dc2626" stroke="#991b1b" strokeWidth="0.5" />
-          <circle cx="22.5" cy="20.5" r="1.2" fill="#ffffff" opacity="0.75" />
+          <g className="viz-sway">
+            <line x1="24" y1="8" x2="24" y2="18" stroke="#ca8a04" strokeWidth="0.6" />
+            <circle cx="24" cy="22" r="4.2" fill="#dc2626" stroke="#991b1b" strokeWidth="0.5" />
+            <circle cx="22.5" cy="20.5" r="1.2" fill="#ffffff" opacity="0.75" />
+          </g>
         </g>
 
         {/* Högra hörnet: Granris med guld-julkula */}
         <g transform="translate(250, 0) scale(-1, 1)">
           <path d="M -2 -2 Q 18 10 32 6 M 6 0 Q 22 16 36 12 M 0 10 Q 15 22 26 18" stroke="#15803d" strokeWidth="2.5" strokeLinecap="round" />
           <path d="M -2 -2 Q 18 10 32 6 M 6 0 Q 22 16 36 12 M 0 10 Q 15 22 26 18" stroke="#22c55e" strokeWidth="1" strokeLinecap="round" opacity="0.6" />
-          <line x1="24" y1="8" x2="24" y2="18" stroke="#ca8a04" strokeWidth="0.6" />
-          <circle cx="24" cy="22" r="4.2" fill="#facc15" stroke="#ca8a04" strokeWidth="0.5" />
-          <circle cx="22.5" cy="20.5" r="1.2" fill="#ffffff" opacity="0.85" />
+          <g className="viz-sway" style={{ animationDelay: '-1.4s' }}>
+            <line x1="24" y1="8" x2="24" y2="18" stroke="#ca8a04" strokeWidth="0.6" />
+            <circle cx="24" cy="22" r="4.2" fill="#facc15" stroke="#ca8a04" strokeWidth="0.5" />
+            <circle cx="22.5" cy="20.5" r="1.2" fill="#ffffff" opacity="0.85" />
+          </g>
         </g>
 
         {/* 2. RETRO TV TAPERED WOOD LEGS WITH BRASS TIPS */}
@@ -289,8 +279,10 @@ export const Q8ArneWeise: React.FC<VisualizerProps> = ({ value }) => {
             <rect x="116" y="80" width="8" height="6.8" rx="1.5" fill="none" stroke="#0f172a" strokeWidth="1.5" />
             <rect x="128" y="80" width="8" height="6.8" rx="1.5" fill="none" stroke="#0f172a" strokeWidth="1.5" />
             <line x1="124" y1="83" x2="128" y2="83" stroke="#0f172a" strokeWidth="1.5" />
-            <circle cx="120" cy="83.5" r="1.1" fill="#1e293b" />
-            <circle cx="132" cy="83.5" r="1.1" fill="#1e293b" />
+            <g className="viz-blink">
+              <circle cx="120" cy="83.5" r="1.1" fill="#1e293b" />
+              <circle cx="132" cy="83.5" r="1.1" fill="#1e293b" />
+            </g>
             <line x1="117.5" y1="81.5" x2="121" y2="85" stroke="#ffffff" strokeWidth="0.9" opacity="0.6" />
             <line x1="129.5" y1="81.5" x2="133" y2="85" stroke="#ffffff" strokeWidth="0.9" opacity="0.6" />
 
@@ -307,8 +299,10 @@ export const Q8ArneWeise: React.FC<VisualizerProps> = ({ value }) => {
             {/* Lit Match Flame */}
             <g transform="translate(54, 102)">
               <circle cx="0" cy="0" r="4.5" fill="url(#flameGlowQ8)" />
-              <path d="M 0 1 Q 2 -2 0 -5.5 Q -2 -2 0 1 Z" fill="#f97316" />
-              <circle cx="0" cy="-1.5" r="1.1" fill="#fde047" />
+              <g className="viz-flicker" style={{ animationDuration: '0.9s' }}>
+                <path d="M 0 1 Q 2 -2 0 -5.5 Q -2 -2 0 1 Z" fill="#f97316" />
+                <circle cx="0" cy="-1.5" r="1.1" fill="#fde047" />
+              </g>
             </g>
 
             {/* THE CLASSIC STUDIO CHRISTMAS CANDLE (On Arne's desk) */}
@@ -322,9 +316,11 @@ export const Q8ArneWeise: React.FC<VisualizerProps> = ({ value }) => {
               <line x1="0" y1="-22" x2="0" y2="-25" stroke="#0f172a" strokeWidth="0.8" />
               {/* Flame Glow & Teardrop */}
               <circle cx="0" cy="-28" r="9" fill="url(#flameGlowQ8)" opacity="0.85" />
-              <path d="M 0 -24.5 Q 3.5 -28 0 -33 Q -3.5 -28 0 -24.5 Z" fill="#f97316" />
-              <ellipse cx="0" cy="-27.5" rx="1.4" ry="3" fill="#fde047" />
-              <circle cx="0" cy="-26" r="0.8" fill="#ffffff" />
+              <g className="viz-flicker" style={{ animationDuration: '1.5s' }}>
+                <path d="M 0 -24.5 Q 3.5 -28 0 -33 Q -3.5 -28 0 -24.5 Z" fill="#f97316" />
+                <ellipse cx="0" cy="-27.5" rx="1.4" ry="3" fill="#fde047" />
+                <circle cx="0" cy="-26" r="0.8" fill="#ffffff" />
+              </g>
               {/* Pine sprig beside candle */}
               <path d="M -8 0 Q -12 -3 -15 0 M -6 0 Q -10 2 -14 2" stroke="#16a34a" strokeWidth="1.2" strokeLinecap="round" />
             </g>
@@ -332,6 +328,9 @@ export const Q8ArneWeise: React.FC<VisualizerProps> = ({ value }) => {
 
           {/* Warm Ambient Glow on Screen */}
           <rect x="30" y="50" width="146" height="98" fill="#f59e0b" opacity="0.08" style={{ pointerEvents: 'none' }} />
+          {/* Retro CRT scanlines and rolling bar */}
+          <rect x="30" y="50" width="146" height="98" fill="url(#scanlinesQ8)" style={{ pointerEvents: 'none' }} />
+          <rect x="30" y="50" width="146" height="8" fill="#ffffff" opacity="0.05" className="viz-roll" />
           {/* Subtle Glass Corner Reflection */}
           <path d="M 32 52 L 75 52 L 32 95 Z" fill="#ffffff" opacity="0.07" />
         </g>
@@ -348,25 +347,41 @@ export const Q8ArneWeise: React.FC<VisualizerProps> = ({ value }) => {
 
         {/* Dynamic Advent Candles along the Arch */}
         <g id="mantle_candles">
-          {candles.map((c, i) => {
-            const flameY = c.baseY - c.h;
+          {candles.map((c) => {
+            const f = -c.h;
             return (
-              <g key={i}>
-                {/* Candle Body */}
-                <rect x={c.x - c.cw / 2} y={c.baseY - c.h} width={c.cw} height={c.h} rx="0.8" fill="#fef9c3" stroke="#fef08a" strokeWidth="0.3" />
-                {/* Brass Collar Socket */}
-                <rect x={c.x - c.cw * 0.8} y={c.baseY - 1.5} width={c.cw * 1.6} height="2" rx="0.5" fill="#ca8a04" />
-                {/* Black Wick */}
-                <line x1={c.x} y1={flameY} x2={c.x} y2={flameY - 2.5} stroke="#0f172a" strokeWidth="0.7" />
-                {/* Radiant Glow */}
-                <circle cx={c.x} cy={flameY - 4.5} r={Math.max(4.5, c.cw * 2.2)} fill="url(#flameGlowQ8)" opacity={glowOpacity} />
-                {/* Flame Teardrop */}
-                <path
-                  d={`M ${c.x} ${flameY - 1.5} Q ${c.x + c.cw * 0.75} ${flameY - 4} ${c.x} ${flameY - 8} Q ${c.x - c.cw * 0.75} ${flameY - 4} ${c.x} ${flameY - 1.5} Z`}
-                  fill="#f97316"
-                />
-                <ellipse cx={c.x} cy={flameY - 3.8} rx={c.cw * 0.38} ry={c.cw * 0.75} fill="#fde047" />
-                <circle cx={c.x} cy={flameY - 2.8} r={c.cw * 0.22} fill="#ffffff" />
+              <g
+                key={c.key}
+                style={{
+                  transform: `translate(${c.x}px, ${c.baseY}px)`,
+                  transition: 'transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+                }}
+              >
+                <g className="viz-pop-in">
+                  {/* Candle Body */}
+                  <rect x={-c.cw / 2} y={f} width={c.cw} height={c.h} rx="0.8" fill="#fef9c3" stroke="#fef08a" strokeWidth="0.3" />
+                  {/* Brass Collar Socket */}
+                  <rect x={-c.cw * 0.8} y="-1.5" width={c.cw * 1.6} height="2" rx="0.5" fill="#ca8a04" />
+                  {/* Black Wick */}
+                  <line x1="0" y1={f} x2="0" y2={f - 2.5} stroke="#0f172a" strokeWidth="0.7" />
+                  {/* Radiant Glow */}
+                  <circle cx="0" cy={f - 4.5} r={Math.max(4.5, c.cw * 2.2)} fill="url(#flameGlowQ8)" opacity={glowOpacity} />
+                  {/* Flame Teardrop, desynced per candle */}
+                  <g
+                    className="viz-flicker"
+                    style={{
+                      animationDelay: `${-((c.key * 0.37) % 1.2)}s`,
+                      animationDuration: `${1 + (c.key % 5) * 0.12}s`,
+                    }}
+                  >
+                    <path
+                      d={`M 0 ${f - 1.5} Q ${c.cw * 0.75} ${f - 4} 0 ${f - 8} Q ${-c.cw * 0.75} ${f - 4} 0 ${f - 1.5} Z`}
+                      fill="#f97316"
+                    />
+                    <ellipse cx="0" cy={f - 3.8} rx={c.cw * 0.38} ry={c.cw * 0.75} fill="#fde047" />
+                    <circle cx="0" cy={f - 2.8} r={c.cw * 0.22} fill="#ffffff" />
+                  </g>
+                </g>
               </g>
             );
           })}

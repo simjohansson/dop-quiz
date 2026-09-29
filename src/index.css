@@ -84,6 +84,97 @@
   box-shadow: 0 4px 20px rgba(234, 179, 8, 0.08);
 }
 
+/* SVG visualizer micro-animations */
+.viz-flicker {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: viz-flicker 1.2s ease-in-out infinite alternate;
+}
+.viz-pop-in {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: viz-pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.viz-twinkle {
+  animation: viz-twinkle 2.4s ease-in-out infinite;
+}
+.viz-puff {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: viz-puff 1.65s ease-out infinite;
+}
+.viz-idle {
+  animation: viz-idle 0.18s linear infinite alternate;
+}
+.viz-beacon {
+  animation: viz-beacon 6s ease-in-out infinite alternate;
+}
+.viz-fly {
+  animation: viz-fly 16s linear infinite;
+}
+.viz-sway {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  animation: viz-sway 3s ease-in-out infinite alternate;
+}
+.viz-blink {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: viz-blink 4.5s ease-in-out infinite;
+}
+.viz-roll {
+  animation: viz-roll 5s linear infinite;
+}
+
+@keyframes viz-flicker {
+  0% { transform: scale(1, 1) rotate(-3deg); }
+  50% { transform: scale(0.9, 1.1) rotate(2deg); }
+  100% { transform: scale(1.05, 0.94) rotate(-1deg); }
+}
+@keyframes viz-pop-in {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes viz-twinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+@keyframes viz-puff {
+  0% { transform: translate(0, 0) scale(0.5); opacity: 0.75; }
+  100% { transform: translate(-22px, -10px) scale(1.9); opacity: 0; }
+}
+@keyframes viz-idle {
+  from { transform: translateY(0); }
+  to { transform: translateY(-0.6px); }
+}
+@keyframes viz-beacon {
+  from { transform: rotate(-10deg); }
+  to { transform: rotate(8deg); }
+}
+@keyframes viz-fly {
+  from { transform: translateX(0); }
+  to { transform: translateX(300px); }
+}
+@keyframes viz-sway {
+  from { transform: rotate(-7deg); }
+  to { transform: rotate(7deg); }
+}
+@keyframes viz-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+@keyframes viz-roll {
+  from { transform: translateY(-12px); }
+  to { transform: translateY(100px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*='viz-'] {
+    animation: none !important;
+  }
+}
+
 /* Subtle sunny background pattern */
 .citrus-bg-pattern {
   background-color: #faf9ee;

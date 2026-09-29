@@ -1,12 +1,55 @@
 import React from 'react';
 import { VisualizerProps } from './types';
 
+const mixHex = (a: string, b: string, t: number) => {
+  const pa = parseInt(a.slice(1), 16);
+  const pb = parseInt(b.slice(1), 16);
+  const ch = (shift: number) => {
+    const ca = (pa >> shift) & 255;
+    const cb = (pb >> shift) & 255;
+    return Math.round(ca + (cb - ca) * t);
+  };
+  return `rgb(${ch(16)}, ${ch(8)}, ${ch(0)})`;
+};
+
+// Dawn (1900) -> noon (1950) -> sunset (2000)
+const skyAt = (stops: [string, string, string], t: number) =>
+  t < 0.5 ? mixHex(stops[0], stops[1], t * 2) : mixHex(stops[1], stops[2], (t - 0.5) * 2);
+
+const ERA_STARTS = [0, 10, 29, 48, 76];
+const EXHAUST_X = [62, 54, 50, 50, 50];
+
+const BIRDS = [
+  { y: 44, s: 1, delay: 0 },
+  { y: 52, s: 0.75, delay: -5 },
+  { y: 38, s: 0.6, delay: -11 },
+];
+
 export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
   const year = 1900 + value;
+  const t = value / 100;
+  const dusk = Math.max(0, (t - 0.5) * 2);
+  const era = ERA_STARTS.filter((start) => value >= start).length - 1;
+
   // Suspension bounce as car rolls on cobblestones
   const bounceY = Math.sin(value * 0.8) * 1.5;
-  // Wheel rotation angle
-  const wheelRot = (value * 36) % 360;
+  // No modulo, so the CSS transition always rolls forward/backward instead of snapping
+  const wheelRot = value * 36;
+  const spin: React.CSSProperties = {
+    transform: `rotate(${wheelRot}deg)`,
+    transition: 'transform 400ms ease-out',
+  };
+  // Previous car drives off to the right, next one drives in from the left
+  const eraStyle = (i: number): React.CSSProperties => ({
+    opacity: i === era ? 1 : 0,
+    transform: `translateX(${i === era ? 0 : i < era ? 60 : -60}px)`,
+    transition: 'opacity 300ms ease, transform 450ms cubic-bezier(0.22, 1, 0.36, 1)',
+  });
+
+  const sunX = 40 + t * 190;
+  const sunY = 62 - Math.sin(Math.PI * t) * 20;
+  const sunColor = mixHex('#fde047', '#f97316', t);
+  const roadOffset = value * 5;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[195px] select-none">
@@ -14,10 +57,14 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
         <defs>
           {/* Parisian Twilight Sky Gradient */}
           <linearGradient id="parisSkyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#fef3c7" />
-            <stop offset="55%" stopColor="#fed7aa" />
-            <stop offset="100%" stopColor="#f1f5f9" />
+            <stop offset="0%" stopColor={skyAt(['#fef3c7', '#7dd3fc', '#a78bfa'], t)} />
+            <stop offset="55%" stopColor={skyAt(['#fed7aa', '#e0f2fe', '#fdba74'], t)} />
+            <stop offset="100%" stopColor={skyAt(['#f1f5f9', '#f8fafc', '#fde68a'], t)} />
           </linearGradient>
+
+          <clipPath id="q4SkyClip">
+            <rect x="0" y="0" width="250" height="136" rx="16" />
+          </clipPath>
 
           {/* Headlight Beam Glow */}
           <linearGradient id="headlightBeam" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -47,9 +94,35 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
         {/* Sky Backdrop */}
         <rect x="0" y="0" width="250" height="136" rx="16" fill="url(#parisSkyGrad)" />
 
-        {/* Revolving Beacon Beams from Eiffel Tower */}
-        <polygon points="206,10 50,0 110,0" fill="url(#beaconBeam1)" opacity="0.4" />
-        <polygon points="206,10 250,2 250,25" fill="url(#beaconBeam2)" opacity="0.35" />
+        <g clipPath="url(#q4SkyClip)">
+          {/* Sun travels across the century */}
+          <g style={{ transform: `translate(${sunX}px, ${sunY}px)`, transition: 'transform 400ms ease-out' }}>
+            <circle r="13" fill={sunColor} opacity="0.25" />
+            <circle r="7.5" fill={sunColor} />
+          </g>
+
+          {BIRDS.map((b) => (
+            <g key={b.y} className="viz-fly" style={{ animationDelay: `${b.delay}s` }}>
+              <path
+                d="M 0 0 Q 3 -3 6 0 Q 9 -3 12 0"
+                transform={`translate(-24, ${b.y}) scale(${b.s})`}
+                fill="none"
+                stroke="#334155"
+                strokeWidth="1.1"
+                strokeLinecap="round"
+              />
+            </g>
+          ))}
+
+          {/* Revolving Beacon Beams from Eiffel Tower, stronger towards dusk */}
+          <g
+            className="viz-beacon"
+            style={{ transformOrigin: '206px 10px', opacity: 0.35 + dusk * 0.65, transition: 'opacity 400ms' }}
+          >
+            <polygon points="206,10 50,0 110,0" fill="url(#beaconBeam1)" opacity="0.4" />
+            <polygon points="206,10 250,2 250,25" fill="url(#beaconBeam2)" opacity="0.35" />
+          </g>
+        </g>
 
         {/* ==================== DETAILED ARCHITECTURAL EIFFEL TOWER ==================== */}
         <g id="eiffel-tower" stroke="#1e293b" strokeLinecap="round">
@@ -132,13 +205,15 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
           <line x1="219" y1="99.5" x2="219" y2="101.5" strokeWidth="0.8" stroke="#475569" />
           <line x1="226" y1="99.5" x2="226" y2="101.5" strokeWidth="0.8" stroke="#475569" />
           {/* Golden Gala Illumination along Platform 1 */}
-          <circle cx="187" cy="103.8" r="1.1" fill="#fef08a" stroke="none" />
-          <circle cx="194" cy="103.8" r="1.1" fill="#fef08a" stroke="none" />
-          <circle cx="201" cy="103.8" r="1.1" fill="#fef08a" stroke="none" />
-          <circle cx="206" cy="103.8" r="1.2" fill="#fde047" stroke="none" />
-          <circle cx="211" cy="103.8" r="1.1" fill="#fef08a" stroke="none" />
-          <circle cx="218" cy="103.8" r="1.1" fill="#fef08a" stroke="none" />
-          <circle cx="225" cy="103.8" r="1.1" fill="#fef08a" stroke="none" />
+          <g className="viz-twinkle">
+            <circle cx="187" cy="103.8" r="1.1" fill="#fef08a" stroke="none" />
+            <circle cx="194" cy="103.8" r="1.1" fill="#fef08a" stroke="none" />
+            <circle cx="201" cy="103.8" r="1.1" fill="#fef08a" stroke="none" />
+            <circle cx="206" cy="103.8" r="1.2" fill="#fde047" stroke="none" />
+            <circle cx="211" cy="103.8" r="1.1" fill="#fef08a" stroke="none" />
+            <circle cx="218" cy="103.8" r="1.1" fill="#fef08a" stroke="none" />
+            <circle cx="225" cy="103.8" r="1.1" fill="#fef08a" stroke="none" />
+          </g>
 
           {/* 1st Stage / Base Legs (y: 106 to 136) */}
           <path d="M 188 106 Q 183 120 176 136" strokeWidth="3.4" stroke="#0f172a" fill="none" />
@@ -172,6 +247,13 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
           <polygon points="19,56 29,56 27,42 21,42" fill="#fef08a" stroke="#1e293b" strokeWidth="1.5" />
           <polygon points="21,42 24,36 27,42" fill="#1e293b" />
           <circle cx="24" cy="49" r="2.5" fill="#fde047" />
+          <circle
+            cx="24"
+            cy="49"
+            r="11"
+            fill="#fde047"
+            style={{ opacity: 0.1 + dusk * 0.45, transition: 'opacity 400ms' }}
+          />
         </g>
 
         {/* Cobblestone Boulevard & Curb */}
@@ -179,9 +261,11 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
         {/* Curb Line */}
         <line x1="0" y1="136" x2="250" y2="136" stroke="#94a3b8" strokeWidth="2" />
         {/* Cobblestone Seams */}
-        <line x1="0" y1="145" x2="250" y2="145" stroke="#334155" strokeWidth="1.2" strokeDasharray="10 6" />
-        <line x1="0" y1="156" x2="250" y2="156" stroke="#334155" strokeWidth="1.2" strokeDasharray="12 5" strokeDashoffset="4" />
-        <line x1="0" y1="167" x2="250" y2="167" stroke="#334155" strokeWidth="1.2" strokeDasharray="9 7" strokeDashoffset="2" />
+        <g stroke="#334155" strokeWidth="1.2">
+          <line x1="0" y1="145" x2="250" y2="145" strokeDasharray="10 6" style={{ strokeDashoffset: roadOffset, transition: 'stroke-dashoffset 400ms ease-out' }} />
+          <line x1="0" y1="156" x2="250" y2="156" strokeDasharray="12 5" style={{ strokeDashoffset: roadOffset + 4, transition: 'stroke-dashoffset 400ms ease-out' }} />
+          <line x1="0" y1="167" x2="250" y2="167" strokeDasharray="9 7" style={{ strokeDashoffset: roadOffset + 2, transition: 'stroke-dashoffset 400ms ease-out' }} />
+        </g>
 
         {/* French Enamel Street Plaque */}
         <g transform="translate(100, 20)">
@@ -196,18 +280,25 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
         </g>
 
         {/* --- 2. EXHAUST PUFFS BEHIND CAR --- */}
-        <g opacity="0.5">
-          <circle cx={44 - (value % 8)} cy={128 - (value % 4)} r={2 + (value % 3)} fill="#ffffff" />
-          <circle cx={38 - (value % 10)} cy={125 - (value % 3)} r={3} fill="#e2e8f0" />
-          <circle cx={32 - (value % 12)} cy={122} r={3.5} fill="#cbd5e1" opacity="0.4" />
+        <g fill="#e2e8f0">
+          {[0, 0.55, 1.1].map((delay) => (
+            <circle
+              key={delay}
+              cx={EXHAUST_X[era]}
+              cy="120"
+              r="3"
+              className="viz-puff"
+              style={{ animationDelay: `${delay}s` }}
+            />
+          ))}
         </g>
 
         {/* --- 3. DYNAMIC CAR TRANSFORMATION (5 ERAS) --- */}
-        <g transform={`translate(0, ${bounceY})`}>
+        <g style={{ transform: `translateY(${bounceY}px)`, transition: 'transform 250ms ease-out' }}>
+        <g className="viz-idle">
 
           {/* ERA 1: 1900–1909 (Hästlös droska / Brass Buggy) */}
-          {value <= 9 && (
-            <g>
+          <g style={eraStyle(0)}>
               <rect x="74" y="96" width="76" height="24" rx="4" fill="#3f1e09" stroke="#1c0c04" strokeWidth="1.5" />
               <rect x="78" y="80" width="30" height="18" rx="3" fill="#1c0c04" />
               <rect x="76" y="82" width="6" height="16" rx="2" fill="#2d1506" />
@@ -228,7 +319,7 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
                 <circle cx="0" cy="0" r="14" fill="none" stroke="#1c0c04" strokeWidth="3" />
                 <circle cx="0" cy="0" r="12" fill="none" stroke="#d97706" strokeWidth="1.2" />
                 <circle cx="0" cy="0" r="3" fill="#d97706" />
-                <g transform={`rotate(${wheelRot})`}>
+                <g style={spin}>
                   <line x1="-12" y1="0" x2="12" y2="0" stroke="#d97706" strokeWidth="1.2" />
                   <line x1="0" y1="-12" x2="0" y2="12" stroke="#d97706" strokeWidth="1.2" />
                   <line x1="-8.5" y1="-8.5" x2="8.5" y2="8.5" stroke="#d97706" strokeWidth="1.2" />
@@ -240,19 +331,17 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
                 <circle cx="0" cy="0" r="12" fill="none" stroke="#1c0c04" strokeWidth="3" />
                 <circle cx="0" cy="0" r="10" fill="none" stroke="#d97706" strokeWidth="1.2" />
                 <circle cx="0" cy="0" r="2.5" fill="#d97706" />
-                <g transform={`rotate(${wheelRot})`}>
+                <g style={spin}>
                   <line x1="-10" y1="0" x2="10" y2="0" stroke="#d97706" strokeWidth="1.2" />
                   <line x1="0" y1="-10" x2="0" y2="10" stroke="#d97706" strokeWidth="1.2" />
                   <line x1="-7" y1="-7" x2="7" y2="7" stroke="#d97706" strokeWidth="1.2" />
                   <line x1="-7" y1="7" x2="7" y2="-7" stroke="#d97706" strokeWidth="1.2" />
                 </g>
               </g>
-            </g>
-          )}
+          </g>
 
           {/* ERA 2: 1910–1928 (André Citroëns Type A Torpedo från 1919) */}
-          {value >= 10 && value <= 28 && (
-            <g>
+          <g style={eraStyle(1)}>
               <path
                 d="M 64 116 L 68 98 L 102 98 L 118 88 L 140 88 L 146 95 L 180 95 L 180 118 Z"
                 fill="#1d4ed8"
@@ -293,7 +382,7 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
                 <circle cx="0" cy="0" r="12.5" fill="#0f172a" stroke="#334155" strokeWidth="1" />
                 <circle cx="0" cy="0" r="9" fill="#1d4ed8" stroke="#ca8a04" strokeWidth="1" />
                 <circle cx="0" cy="0" r="3" fill="url(#chromeGrad)" />
-                <g transform={`rotate(${wheelRot})`}>
+                <g style={spin}>
                   <line x1="-8.5" y1="0" x2="8.5" y2="0" stroke="#ca8a04" strokeWidth="1.2" />
                   <line x1="0" y1="-8.5" x2="0" y2="8.5" stroke="#ca8a04" strokeWidth="1.2" />
                   <line x1="-6" y1="-6" x2="6" y2="6" stroke="#ca8a04" strokeWidth="1.2" />
@@ -305,19 +394,17 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
                 <circle cx="0" cy="0" r="12.5" fill="#0f172a" stroke="#334155" strokeWidth="1" />
                 <circle cx="0" cy="0" r="9" fill="#1d4ed8" stroke="#ca8a04" strokeWidth="1" />
                 <circle cx="0" cy="0" r="3" fill="url(#chromeGrad)" />
-                <g transform={`rotate(${wheelRot})`}>
+                <g style={spin}>
                   <line x1="-8.5" y1="0" x2="8.5" y2="0" stroke="#ca8a04" strokeWidth="1.2" />
                   <line x1="0" y1="-8.5" x2="0" y2="8.5" stroke="#ca8a04" strokeWidth="1.2" />
                   <line x1="-6" y1="-6" x2="6" y2="6" stroke="#ca8a04" strokeWidth="1.2" />
                   <line x1="-6" y1="6" x2="6" y2="-6" stroke="#ca8a04" strokeWidth="1.2" />
                 </g>
               </g>
-            </g>
-          )}
+          </g>
 
           {/* ERA 3: 1929–1947 (Traction Avant - Gangsterbilen) */}
-          {value >= 29 && value <= 47 && (
-            <g>
+          <g style={eraStyle(2)}>
               <path
                 d="M 56 122 C 54 104 68 96 82 96 L 102 96 L 126 88 L 152 88 L 158 98 L 186 102 L 188 122 Z"
                 fill="#0f172a"
@@ -340,7 +427,7 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
               <g transform="translate(68, 124)">
                 <circle cx="0" cy="0" r="12" fill="#0f172a" stroke="#475569" strokeWidth="1" />
                 <circle cx="0" cy="0" r="7" fill="url(#chromeGrad)" stroke="#0f172a" strokeWidth="1" />
-                <g transform={`rotate(${wheelRot})`}>
+                <g style={spin}>
                   <circle cx="4" cy="0" r="1" fill="#0f172a" />
                   <circle cx="-4" cy="0" r="1" fill="#0f172a" />
                 </g>
@@ -348,17 +435,15 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
               <g transform="translate(164, 124)">
                 <circle cx="0" cy="0" r="12" fill="#0f172a" stroke="#475569" strokeWidth="1" />
                 <circle cx="0" cy="0" r="7" fill="url(#chromeGrad)" stroke="#0f172a" strokeWidth="1" />
-                <g transform={`rotate(${wheelRot})`}>
+                <g style={spin}>
                   <circle cx="4" cy="0" r="1" fill="#0f172a" />
                   <circle cx="-4" cy="0" r="1" fill="#0f172a" />
                 </g>
               </g>
-            </g>
-          )}
+          </g>
 
           {/* ERA 4: 1948–1975 (Citroën 2CV "Deux Chevaux" / Lill-citronen) */}
-          {value >= 48 && value <= 75 && (
-            <g>
+          <g style={eraStyle(3)}>
               <path
                 d="M 54 122 C 52 108 60 92 84 88 C 110 84 140 84 156 94 L 180 106 L 182 122 Z"
                 fill="#fef08a"
@@ -389,7 +474,7 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
               <g transform="translate(72, 125)">
                 <circle cx="0" cy="0" r="11" fill="#1e293b" />
                 <circle cx="0" cy="0" r="6" fill="#fefce8" stroke="#ca8a04" strokeWidth="1" />
-                <g transform={`rotate(${wheelRot})`}>
+                <g style={spin}>
                   <circle cx="2" cy="0" r="0.8" fill="#475569" />
                   <circle cx="-2" cy="0" r="0.8" fill="#475569" />
                 </g>
@@ -397,17 +482,15 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
               <g transform="translate(162, 125)">
                 <circle cx="0" cy="0" r="11" fill="#1e293b" />
                 <circle cx="0" cy="0" r="6" fill="#fefce8" stroke="#ca8a04" strokeWidth="1" />
-                <g transform={`rotate(${wheelRot})`}>
+                <g style={spin}>
                   <circle cx="2" cy="0" r="0.8" fill="#475569" />
                   <circle cx="-2" cy="0" r="0.8" fill="#475569" />
                 </g>
               </g>
-            </g>
-          )}
+          </g>
 
           {/* ERA 5: 1976–1999 (Retro 80/90s Wedge / Citroën BX/XM) */}
-          {value >= 76 && (
-            <g>
+          <g style={eraStyle(4)}>
               <path
                 d="M 52 122 L 56 102 L 94 98 L 126 88 L 158 88 L 186 108 L 192 122 Z"
                 fill="#e2e8f0"
@@ -428,7 +511,7 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
               <g transform="translate(72, 125)">
                 <circle cx="0" cy="0" r="11" fill="#0f172a" />
                 <circle cx="0" cy="0" r="7.5" fill="#94a3b8" stroke="#334155" strokeWidth="0.8" />
-                <g transform={`rotate(${wheelRot})`}>
+                <g style={spin}>
                   <rect x="-6" y="-1.5" width="12" height="3" fill="#e2e8f0" />
                   <rect x="-1.5" y="-6" width="3" height="12" fill="#e2e8f0" />
                 </g>
@@ -436,14 +519,14 @@ export const Q4Citroen: React.FC<VisualizerProps> = ({ value }) => {
               <g transform="translate(164, 125)">
                 <circle cx="0" cy="0" r="11" fill="#0f172a" />
                 <circle cx="0" cy="0" r="7.5" fill="#94a3b8" stroke="#334155" strokeWidth="0.8" />
-                <g transform={`rotate(${wheelRot})`}>
+                <g style={spin}>
                   <rect x="-6" y="-1.5" width="12" height="3" fill="#e2e8f0" />
                   <rect x="-1.5" y="-6" width="3" height="12" fill="#e2e8f0" />
                 </g>
               </g>
-            </g>
-          )}
+          </g>
 
+        </g>
         </g>
       </svg>
     </div>
