@@ -59,6 +59,45 @@ const gameState = {
   ...loadSavedState(),
 };
 
+// Reset connected status on boot: no actual sockets are connected when server boots
+Object.values(gameState.players).forEach((p) => {
+  if (!p.isBot) {
+    p.connected = false;
+  }
+});
+
+// Active sockets per player: Map<playerId, Set<socketId>>
+const playerSockets = new Map();
+
+function addPlayerSocket(playerId, socketId) {
+  if (!playerSockets.has(playerId)) {
+    playerSockets.set(playerId, new Set());
+  }
+  playerSockets.get(playerId).add(socketId);
+  if (gameState.players[playerId]) {
+    gameState.players[playerId].connected = true;
+  }
+}
+
+function removePlayerSocket(playerId, socketId) {
+  const sockets = playerSockets.get(playerId);
+  if (sockets) {
+    sockets.delete(socketId);
+    if (sockets.size === 0) {
+      playerSockets.delete(playerId);
+      if (gameState.players[playerId]) {
+        gameState.players[playerId].connected = false;
+        broadcastState();
+      }
+    }
+  }
+}
+
+function isPlayerConnected(playerId) {
+  const sockets = playerSockets.get(playerId);
+  return !!(sockets && sockets.size > 0);
+}
+
 // Debounced + atomic (tmp file + rename) so slider spam doesn't hammer the disk or corrupt the file.
 let saveTimer = null;
 function saveState() {
@@ -175,6 +214,9 @@ io.on('connection', (socket) => {
     const cleanName = typeof name === 'string' ? name.trim().slice(0, 24) : '';
     if (!playerId || !cleanName) return;
 
+    socket.data.playerId = playerId;
+    addPlayerSocket(playerId, socket.id);
+
     if (!gameState.players[playerId]) {
       gameState.players[playerId] = {
         id: playerId,
@@ -265,6 +307,24 @@ io.on('connection', (socket) => {
     broadcastState();
   });
 
+  socket.on('admin-remove-player', ({ playerId }) => {
+    if (playerId && gameState.players[playerId]) {
+      delete gameState.players[playerId];
+      playerSockets.delete(playerId);
+      broadcastState();
+    }
+  });
+
+  socket.on('admin-clear-disconnected', () => {
+    Object.keys(gameState.players).forEach((id) => {
+      const p = gameState.players[id];
+      if (!p.isBot && !isPlayerConnected(id)) {
+        delete gameState.players[id];
+      }
+    });
+    broadcastState();
+  });
+
   socket.on('admin-reset-game', () => {
     gameState.phase = 'LOBBY';
     gameState.roundId = newRoundId();
@@ -272,15 +332,24 @@ io.on('connection', (socket) => {
     gameState.isAnswerRevealed = false;
     gameState.isGuessesRevealed = false;
     gameState.juice = { total: 0, byPlayer: {} };
+    // Clear bots and disconnected players; reset answers for connected active players
     Object.keys(gameState.players).forEach((id) => {
-      gameState.players[id].answers = {};
-      gameState.players[id].isSubmitted = false;
+      const p = gameState.players[id];
+      if (p.isBot || !isPlayerConnected(id)) {
+        delete gameState.players[id];
+      } else {
+        p.answers = {};
+        p.isSubmitted = false;
+        p.connected = true;
+      }
     });
     broadcastState();
   });
 
   socket.on('disconnect', () => {
-    // Optionally flag offline
+    if (socket.data.playerId) {
+      removePlayerSocket(socket.data.playerId, socket.id);
+    }
   });
 });
 

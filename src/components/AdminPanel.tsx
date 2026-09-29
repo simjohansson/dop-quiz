@@ -24,6 +24,8 @@ interface AdminPanelProps {
   onAddBotPlayers: () => void;
   onClearBots: () => void;
   onResetGame: () => void;
+  onRemovePlayer?: (playerId: string) => void;
+  onClearDisconnected?: () => void;
   onJumpToQuestion: (index: number) => void;
   onJumpToLeaderboard: () => void;
   onClose: () => void;
@@ -38,6 +40,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onAddBotPlayers,
   onClearBots,
   onResetGame,
+  onRemovePlayer,
+  onClearDisconnected,
   onJumpToQuestion,
   onJumpToLeaderboard,
   onClose,
@@ -45,6 +49,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [showQrModal, setShowQrModal] = useState(false);
 
   const readyCount = players.filter((p) => p.isSubmitted).length;
+  const disconnectedCount = players.filter((p) => !p.connected && !p.isBot).length;
 
   return (
     <div className="w-full max-w-xl mx-auto flex flex-col min-h-[92vh] pb-8 px-3 animate-fade-in">
@@ -186,9 +191,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               Anslutna spelare ({players.length})
             </h3>
           </div>
-          <span className="text-xs font-bold text-lime-700">
-            {readyCount} av {players.length} klara
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-lime-700">
+              {readyCount} av {players.length} klara
+            </span>
+            {onClearDisconnected && disconnectedCount > 0 && (
+              <button
+                type="button"
+                onClick={onClearDisconnected}
+                className="text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-lg transition"
+                title="Ta bort alla spelare som stängt webbläsaren"
+              >
+                Rensa frånkopplade ({disconnectedCount})
+              </button>
+            )}
+          </div>
         </div>
 
         {players.length === 0 ? (
@@ -200,20 +217,38 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             {players.map((p) => {
               const answeredCount = Object.keys(p.answers).length;
               const isDone = p.isSubmitted || answeredCount === questions.length;
+              const isOnline = p.connected;
 
               return (
                 <div
                   key={p.id}
-                  className="flex items-center justify-between p-3 rounded-2xl bg-amber-50/50 border border-amber-200/80"
+                  className={`flex items-center justify-between p-3 rounded-2xl border transition ${
+                    isOnline
+                      ? 'bg-amber-50/50 border-amber-200/80'
+                      : 'bg-slate-50/80 border-slate-200 opacity-75'
+                  }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="text-xl">🍋</span>
+                    <div className="relative">
+                      <span className="text-xl">🍋</span>
+                      <span
+                        className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${
+                          isOnline ? 'bg-emerald-500' : 'bg-slate-400'
+                        }`}
+                        title={isOnline ? 'Ansluten i webbläsare' : 'Frånkopplad / stängd webbläsare'}
+                      />
+                    </div>
                     <div>
                       <p className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                         <span>{p.name}</span>
                         {p.isBot && (
                           <span className="px-1.5 py-0.2 rounded-md bg-slate-200 text-[9px] font-normal text-slate-600">
                             bot
+                          </span>
+                        )}
+                        {!isOnline && !p.isBot && (
+                          <span className="px-1.5 py-0.2 rounded-md bg-slate-200 text-[9px] font-normal text-slate-500">
+                            offline
                           </span>
                         )}
                       </p>
@@ -234,6 +269,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         <Clock className="w-3.5 h-3.5 animate-spin" />
                         <span>Funderar...</span>
                       </span>
+                    )}
+
+                    {onRemovePlayer && (
+                      <button
+                        type="button"
+                        onClick={() => onRemovePlayer(p.id)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition ml-1"
+                        title={`Ta bort ${p.name}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     )}
                   </div>
                 </div>

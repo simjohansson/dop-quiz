@@ -228,6 +228,18 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleAdminRemovePlayer = (targetPlayerId: string) => {
+    if (socket) {
+      socket.emit('admin-remove-player', { playerId: targetPlayerId });
+    }
+  };
+
+  const handleAdminClearDisconnected = () => {
+    if (socket) {
+      socket.emit('admin-clear-disconnected');
+    }
+  };
+
   const handleAdminResetGame = () => {
     setIsSubmittedLocally(false);
     localStorage.removeItem('lemon_quiz_submitted');
@@ -374,6 +386,8 @@ export const App: React.FC = () => {
             onAddBotPlayers={handleAdminAddBots}
             onClearBots={handleAdminClearBots}
             onResetGame={handleAdminResetGame}
+            onRemovePlayer={handleAdminRemovePlayer}
+            onClearDisconnected={handleAdminClearDisconnected}
             onJumpToQuestion={handleAdminJumpQuestion}
             onJumpToLeaderboard={handleAdminFinishQuiz}
             onClose={() => setIsAdminView(false)}
