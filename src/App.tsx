@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { QUESTIONS } from './data/questions';
 import { Player, GameState } from './types/game';
@@ -8,10 +8,16 @@ import { WaitingScreen } from './components/WaitingScreen';
 import { RevealQuestionView } from './components/RevealQuestionView';
 import { LeaderboardView } from './components/LeaderboardView';
 import { AdminPanel } from './components/AdminPanel';
-import { ShieldCheck, ArrowLeft } from 'lucide-react';
+import { TvView } from './components/TvView';
+import { ShieldCheck, ArrowLeft, Volume2, VolumeX } from 'lucide-react';
+import { useWakeLock } from './hooks/useWakeLock';
+import { isSoundEnabled, setSoundEnabled, unlockAudio } from './utils/sfx';
+import { isParticipant } from './utils/standings';
 
 const ADMIN_PATH = import.meta.env.VITE_ADMIN_PATH || '/spelledare-citron';
-const isAdmin = window.location.pathname.replace(/\/+$/, '') === ADMIN_PATH;
+const pathname = window.location.pathname.replace(/\/+$/, '');
+const isAdmin = pathname === ADMIN_PATH;
+const isTv = pathname === '/tv';
 
 export const App: React.FC = () => {
   // Persistent Player Identity
@@ -55,20 +61,42 @@ export const App: React.FC = () => {
   });
 
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [isConnectionLost, setIsConnectionLost] = useState(false);
+  const [soundOn, setSoundOn] = useState(isSoundEnabled);
+
+  const playerNameRef = useRef(playerName);
+  playerNameRef.current = playerName;
+
+  useWakeLock(isTv || isAdmin || !!playerName);
+
+  useEffect(() => {
+    document.addEventListener('pointerdown', unlockAudio, { once: true });
+    return () => document.removeEventListener('pointerdown', unlockAudio);
+  }, []);
 
   // Connect to Socket.IO
   useEffect(() => {
+    // Never give up: phones get locked between questions and must find their way back.
     const s = io({
-      reconnectionAttempts: 10,
+      reconnectionAttempts: Infinity,
+      reconnectionDelayMax: 5000,
       timeout: 5000,
     });
 
     s.on('connect', () => {
-      // Re-register if name exists
-      if (playerName) {
-        s.emit('join-game', { playerId, name: playerName });
+      setIsConnectionLost(false);
+      if (playerNameRef.current) {
+        s.emit('join-game', { playerId, name: playerNameRef.current });
       }
     });
+    s.on('disconnect', () => setIsConnectionLost(true));
+    s.on('connect_error', () => setIsConnectionLost(true));
+
+    // Mobile browsers pause timers in the background; reconnect right away when the user returns.
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !s.connected) s.connect();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     s.on('game-state', (state: GameState) => {
       if (state.roundId) {
@@ -87,6 +115,7 @@ export const App: React.FC = () => {
     setSocket(s);
 
     return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       s.disconnect();
     };
   }, [playerId]);
@@ -231,6 +260,13 @@ export const App: React.FC = () => {
   }, [gameState.players, playerId, playerName, answers, isSubmittedLocally]);
 
   const readyPlayersCount = allPlayersList.filter((p) => p.isSubmitted).length;
+  // Late joiners and people who never answered watch along but aren't ranked.
+  const participants = useMemo(() => allPlayersList.filter(isParticipant), [allPlayersList]);
+
+  const toggleSound = () => {
+    setSoundEnabled(!soundOn);
+    setSoundOn(!soundOn);
+  };
 
   return (
     <div className="min-h-screen bg-[#fbfbf2] citrus-bg-pattern flex flex-col justify-between text-slate-900">
@@ -255,6 +291,14 @@ export const App: React.FC = () => {
 
           {/* Right Header Navigation */}
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleSound}
+              className="p-1.5 rounded-full bg-white border border-amber-200 hover:border-amber-400 text-slate-600 transition shadow-xs"
+              title={soundOn ? 'Stäng av ljud och vibration' : 'Slå på ljud och vibration'}
+            >
+              {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            </button>
             {!isAdmin ? null : isAdminView ? (
               <button
                 type="button"
@@ -279,10 +323,23 @@ export const App: React.FC = () => {
         </div>
       </header>
 
+      {isConnectionLost && (
+        <div className="sticky top-14 z-30 mx-auto mt-2 px-3 py-1.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold shadow-sm animate-pulse">
+          📡 Tappade anslutningen – återansluter…
+        </div>
+      )}
+
       {/* Main Content View Switcher */}
       <main className="flex-1 flex flex-col justify-center">
-        {/* Admin Overlay View */}
-        {isAdmin && (isAdminView || gameState.phase === 'LOBBY' || gameState.phase === 'ANSWERING') ? (
+        {isTv ? (
+          <TvView
+            gameState={gameState}
+            players={allPlayersList}
+            participants={participants}
+            questions={QUESTIONS}
+          />
+        ) : /* Admin Overlay View */
+        isAdmin && (isAdminView || gameState.phase === 'LOBBY' || gameState.phase === 'ANSWERING') ? (
           <AdminPanel
             players={allPlayersList}
             gamePhase={gameState.phase}
@@ -302,7 +359,7 @@ export const App: React.FC = () => {
         ) : gameState.phase === 'LEADERBOARD' ? (
           /* Step 4: Final Podium & Leaderboard */
           <LeaderboardView
-            players={allPlayersList}
+            players={participants}
             questions={QUESTIONS}
             onRestartQuiz={isAdmin ? handleAdminResetGame : undefined}
           />
@@ -311,9 +368,11 @@ export const App: React.FC = () => {
           <RevealQuestionView
             key={gameState.currentRevealQuestionIndex}
             question={QUESTIONS[gameState.currentRevealQuestionIndex]}
+            questions={QUESTIONS}
             questionIndex={gameState.currentRevealQuestionIndex}
             totalQuestions={QUESTIONS.length}
-            players={allPlayersList}
+            players={participants}
+            playerId={playerName ? playerId : undefined}
             isAdmin={isAdmin}
             isAnswerRevealed={gameState.isAnswerRevealed}
             isGuessesRevealed={gameState.isGuessesRevealed}

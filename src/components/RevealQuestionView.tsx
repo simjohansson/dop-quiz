@@ -1,13 +1,20 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Question, Player } from '../types/game';
 import confetti from 'canvas-confetti';
 import { Trophy, Sparkles, ChevronLeft, ChevronRight, Award, Flame, Target } from 'lucide-react';
+import { playDrumroll, playTada, vibrate } from '../utils/sfx';
+import { guessOf } from '../utils/standings';
+import { StandingsCard } from './StandingsCard';
+
+const DRUMROLL_MS = 1800;
 
 interface RevealQuestionViewProps {
   question: Question;
+  questions: Question[];
   questionIndex: number;
   totalQuestions: number;
   players: Player[];
+  playerId?: string;
   isAdmin: boolean;
   isAnswerRevealed: boolean;
   isGuessesRevealed: boolean;
@@ -20,36 +27,56 @@ interface RevealQuestionViewProps {
 
 export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
   question,
+  questions,
   questionIndex,
   totalQuestions,
   players,
+  playerId,
   isAdmin,
-  isAnswerRevealed: showAnswer,
-  isGuessesRevealed: showGuesses,
+  isAnswerRevealed,
+  isGuessesRevealed,
   onRevealAnswer,
   onRevealGuesses,
   onNextQuestion,
   onPrevQuestion,
   onFinishQuiz,
 }) => {
+  const [isDrumrolling, setIsDrumrolling] = useState(false);
   // Only celebrate the moment of reveal, not when (re)joining an already revealed question.
-  const wasAnswerRevealed = useRef(showAnswer);
+  const wasAnswerRevealed = useRef(isAnswerRevealed);
   useEffect(() => {
-    if (showAnswer && !wasAnswerRevealed.current) {
+    if (!isAnswerRevealed || wasAnswerRevealed.current) {
+      wasAnswerRevealed.current = isAnswerRevealed;
+      return;
+    }
+    setIsDrumrolling(true);
+    const stopDrumroll = playDrumroll(DRUMROLL_MS);
+    const timer = setTimeout(() => {
+      wasAnswerRevealed.current = true;
+      setIsDrumrolling(false);
+      playTada();
+      vibrate([80, 40, 160]);
       confetti({
         particleCount: 80,
         spread: 70,
         origin: { y: 0.6 },
         colors: ['#facc15', '#fde047', '#84cc16', '#3b82f6', '#f97316'],
       });
-    }
-    wasAnswerRevealed.current = showAnswer;
-  }, [showAnswer]);
+    }, DRUMROLL_MS);
+    return () => {
+      clearTimeout(timer);
+      stopDrumroll();
+    };
+  }, [isAnswerRevealed]);
+
+  const showAnswer = isAnswerRevealed && !isDrumrolling;
+  const showGuesses = showAnswer && isGuessesRevealed;
+  const isLastQuestion = questionIndex === totalQuestions - 1;
 
   // Compile guesses
   const playerGuesses = players
     .map((p) => {
-      const guess = p.answers[question.id] ?? 50;
+      const guess = guessOf(p, question);
       const diff = Math.abs(guess - question.answer);
       return {
         player: p,
@@ -78,6 +105,19 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
   const higherCount = playerGuesses.filter((g) => g.guess > question.answer).length;
   const lowerCount = playerGuesses.filter((g) => g.guess < question.answer).length;
   const exactCount = playerGuesses.filter((g) => g.guess === question.answer).length;
+
+  const myIndex = playerGuesses.findIndex((g) => g.player.id === playerId);
+  const mine = myIndex >= 0 ? playerGuesses[myIndex] : null;
+  const myPlaceOnQuestion = mine ? playerGuesses.filter((g) => g.diff < mine.diff).length + 1 : 0;
+  const myVerdict = !mine
+    ? ''
+    : mine.diff === 0
+      ? '🎯 Mitt i prick!'
+      : mine.diff <= 3
+        ? '🔥 Riktigt nära!'
+        : mine.diff <= 10
+          ? '👍 Helt okej'
+          : '😅 Aj aj aj';
 
   return (
     <div className="w-full max-w-xl mx-auto flex flex-col min-h-[92vh] justify-between pb-6 px-3">
@@ -111,7 +151,12 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
           </p>
 
           {/* Correct Answer Section */}
-          {!showAnswer ? (
+          {isDrumrolling ? (
+            <div className="my-6 flex flex-col items-center">
+              <div className="text-6xl mb-2 animate-wiggle">🥁</div>
+              <p className="text-lg font-black text-slate-900 tracking-widest">Trrrrrrrr…</p>
+            </div>
+          ) : !showAnswer ? (
             isAdmin ? (
               <div className="my-6 flex flex-col items-center animate-pulse">
                 <button
@@ -155,6 +200,29 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
                   💡 {question.explanation}
                 </p>
               </div>
+
+              {mine ? (
+                <div className="mt-3 w-full max-w-sm px-4 py-2.5 rounded-2xl bg-lime-50 border-2 border-lime-300 flex items-center justify-between gap-2 animate-fade-in">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-lime-800">Din gissning</p>
+                    <p className="text-sm font-black text-slate-900">{myVerdict}</p>
+                  </div>
+                  <div className="text-right font-mono">
+                    <p className="text-lg font-black text-slate-900 leading-tight">
+                      {mine.guess} <span className="text-xs text-slate-500">(±{mine.diff})</span>
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-600">
+                      plats {myPlaceOnQuestion} av {playerGuesses.length} på frågan
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                playerId && (
+                  <p className="mt-3 text-xs font-semibold text-slate-500">
+                    👀 Du är med som åskådare den här omgången
+                  </p>
+                )
+              )}
 
               {/* Reveal Guesses button toggle */}
               {!showGuesses ? (
@@ -314,6 +382,19 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
                       📈 För högt: <strong className="text-orange-700">{higherCount}</strong>
                     </span>
                   </div>
+
+                  {isLastQuestion ? (
+                    <p className="mt-4 text-center text-xs font-black text-amber-800">
+                      🏆 Slutställningen avslöjas på topplistan…
+                    </p>
+                  ) : (
+                    <StandingsCard
+                      players={players}
+                      questions={questions}
+                      questionIndex={questionIndex}
+                      playerId={playerId}
+                    />
+                  )}
                 </div>
               )}
             </div>
@@ -334,7 +415,7 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
           <span>Föregående</span>
         </button>
 
-        {questionIndex === totalQuestions - 1 ? (
+        {isLastQuestion ? (
           <button
             type="button"
             onClick={onFinishQuiz}

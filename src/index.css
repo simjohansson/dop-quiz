@@ -117,6 +117,18 @@
   }
 }
 
+/* Big-screen mode: scale the phone-sized views up for a TV/projector */
+@media (min-width: 1024px) {
+  .tv-mode {
+    zoom: 1.4;
+  }
+}
+@media (min-width: 1800px) {
+  .tv-mode {
+    zoom: 1.8;
+  }
+}
+
 /* Light Citrus Range Slider */
 .custom-range-slider {
   -webkit-appearance: none;

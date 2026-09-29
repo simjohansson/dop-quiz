@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import { BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
 import { Player, Question } from '../types/game';
+import { guessOf } from '../utils/standings';
 
 interface StatsNerdSectionProps {
   players: Player[];
@@ -32,8 +33,6 @@ const COLORS = {
 const TICK = { fontSize: 10, fill: '#64748b' };
 const TOOLTIP_STYLE = { borderRadius: 12, border: '1px solid #fcd34d', fontSize: 12 };
 
-// Must match LeaderboardView: unanswered questions count as 50.
-const guessOf = (p: Player, q: Question) => p.answers[q.id] ?? 50;
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 const mean = (xs: number[]) => (xs.length ? sum(xs) / xs.length : 0);
 const r1 = (x: number) => Math.round(x * 10) / 10;

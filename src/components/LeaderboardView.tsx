@@ -1,11 +1,12 @@
 import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { Question, Player } from '../types/game';
 import confetti from 'canvas-confetti';
+import { Trophy, Award, Sparkles, Target, ChevronDown, ChevronUp, RotateCcw, Flame } from 'lucide-react';
+import { computeStandings, guessOf } from '../utils/standings';
 
 const StatsNerdSection = lazy(() =>
   import('./StatsNerdSection').then((m) => ({ default: m.StatsNerdSection }))
 );
-import { Trophy, Award, Sparkles, Target, ChevronDown, ChevronUp, RotateCcw, Flame } from 'lucide-react';
 
 interface LeaderboardViewProps {
   players: Player[];
@@ -28,7 +29,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
     let maxSingleDiff = 0;
 
     const breakdown = questions.map((q) => {
-      const guess = player.answers[q.id] ?? 50;
+      const guess = guessOf(player, q);
       const diff = Math.abs(guess - q.answer);
       totalDiff += diff;
       sumGuesses += guess;
@@ -55,13 +56,11 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
     };
   });
 
-  // Lowest diff wins; exact hits break ties, otherwise the place is shared.
-  playerResults.sort((a, b) => a.totalDiff - b.totalDiff || b.exactHits - a.exactHits);
-  playerResults.forEach((r, i) => {
-    const prev = playerResults[i - 1];
-    r.rank =
-      prev && prev.totalDiff === r.totalDiff && prev.exactHits === r.exactHits ? prev.rank : i + 1;
+  const rankById = new Map(computeStandings(players, questions).map((s) => [s.player.id, s.rank]));
+  playerResults.forEach((r) => {
+    r.rank = rankById.get(r.player.id) ?? 0;
   });
+  playerResults.sort((a, b) => a.rank - b.rank);
   const isSharedRank = (rank: number) => playerResults.filter((r) => r.rank === rank).length > 1;
   const rankEmoji = (rank: number) => (rank === 1 ? '👑' : rank === 2 ? '🥈' : '🥉');
 

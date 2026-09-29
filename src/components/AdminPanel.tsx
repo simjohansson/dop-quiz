@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Player, GamePhase, Question } from '../types/game';
-import { QRCodeSVG } from 'qrcode.react';
+import { JoinQrCode } from './JoinQrCode';
 import {
   Users,
   Play,
@@ -12,6 +12,7 @@ import {
   Clock,
   Trophy,
   X,
+  Monitor,
 } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -44,7 +45,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [showQrModal, setShowQrModal] = useState(false);
 
   const readyCount = players.filter((p) => p.isSubmitted).length;
-  const currentUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
   return (
     <div className="w-full max-w-xl mx-auto flex flex-col min-h-[92vh] pb-8 px-3 animate-fade-in">
@@ -62,6 +62,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <a
+            href="/tv"
+            target="_blank"
+            rel="noopener"
+            className="p-2 rounded-xl bg-white border border-amber-300 text-slate-700 hover:bg-amber-50 shadow-xs transition"
+            title="Öppna storbildsläge för tv/projektor"
+          >
+            <Monitor className="w-5 h-5 text-amber-700" />
+          </a>
           <button
             type="button"
             onClick={() => setShowQrModal(true)}
@@ -260,20 +269,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               Scanna med mobilkameran för att öppna quizet direkt!
             </p>
 
-            {/* QR Code Container */}
-            <div className="p-4 rounded-2xl bg-white shadow-md border-2 border-amber-200 mb-4">
-              <QRCodeSVG
-                value={currentUrl}
-                size={210}
-                bgColor="#ffffff"
-                fgColor="#0f172a"
-                level="M"
-              />
+            <div className="mb-4">
+              <JoinQrCode size={210} />
             </div>
-
-            <p className="text-xs font-mono font-bold text-slate-800 break-all px-2.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 mb-4">
-              {currentUrl}
-            </p>
 
             <button
               type="button"
