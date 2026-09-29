@@ -10,6 +10,9 @@ import { LeaderboardView } from './components/LeaderboardView';
 import { AdminPanel } from './components/AdminPanel';
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
 
+const ADMIN_PATH = import.meta.env.VITE_ADMIN_PATH || '/spelledare-citron';
+const isAdmin = window.location.pathname.replace(/\/+$/, '') === ADMIN_PATH;
+
 export const App: React.FC = () => {
   // Persistent Player Identity
   const [playerId] = useState<string>(() => {
@@ -24,7 +27,7 @@ export const App: React.FC = () => {
     return localStorage.getItem('lemon_quiz_player_name') || '';
   });
 
-  const [isAdminView, setIsAdminView] = useState<boolean>(false);
+  const [isAdminView, setIsAdminView] = useState<boolean>(isAdmin);
 
   // Local answers state (with local storage backup)
   const [answers, setAnswers] = useState<Record<number, number>>(() => {
@@ -110,6 +113,7 @@ export const App: React.FC = () => {
 
   // Admin Actions
   const handleAdminStartReveal = () => {
+    setIsAdminView(false);
     if (socket) {
       socket.emit('admin-start-reveal');
     } else {
@@ -151,6 +155,7 @@ export const App: React.FC = () => {
   };
 
   const handleAdminFinishQuiz = () => {
+    setIsAdminView(false);
     if (socket) {
       socket.emit('admin-finish-quiz');
     } else {
@@ -212,7 +217,7 @@ export const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#fbfbf2] citrus-bg-pattern flex flex-col justify-between text-slate-900">
       {/* Top Navbar (Light Mode) */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-amber-200/80 px-4 py-2.5 shadow-sm">
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-amber-200/80 px-4 py-2.5 shadow-xs">
         <div className="max-w-xl mx-auto flex items-center justify-between">
           {/* Logo / Brand */}
           <div
@@ -232,11 +237,11 @@ export const App: React.FC = () => {
 
           {/* Right Header Navigation */}
           <div className="flex items-center gap-2">
-            {isAdminView ? (
+            {!isAdmin ? null : isAdminView ? (
               <button
                 type="button"
                 onClick={() => setIsAdminView(false)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold transition hover:bg-amber-200 shadow-sm"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold transition hover:bg-amber-200 shadow-xs"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Tillbaka till spelet</span>
@@ -245,7 +250,7 @@ export const App: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsAdminView(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-amber-200 hover:border-amber-400 text-[11px] font-bold text-slate-700 transition shadow-sm"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-amber-200 hover:border-amber-400 text-[11px] font-bold text-slate-700 transition shadow-xs"
                 title="Spelledare / Admin"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
@@ -259,7 +264,7 @@ export const App: React.FC = () => {
       {/* Main Content View Switcher */}
       <main className="flex-1 flex flex-col justify-center">
         {/* Admin Overlay View */}
-        {isAdminView ? (
+        {isAdmin && (isAdminView || gameState.phase === 'LOBBY' || gameState.phase === 'ANSWERING') ? (
           <AdminPanel
             players={allPlayersList}
             gamePhase={gameState.phase}
@@ -273,27 +278,25 @@ export const App: React.FC = () => {
             onJumpToLeaderboard={handleAdminFinishQuiz}
             onClose={() => setIsAdminView(false)}
           />
-        ) : !playerName ? (
+        ) : !playerName && !isAdmin ? (
           /* Step 1: Join & Choose Name */
-          <JoinScreen
-            onJoin={handleJoin}
-            onOpenAdmin={() => setIsAdminView(true)}
-          />
+          <JoinScreen onJoin={handleJoin} />
         ) : gameState.phase === 'LEADERBOARD' ? (
           /* Step 4: Final Podium & Leaderboard */
           <LeaderboardView
             players={allPlayersList}
             questions={QUESTIONS}
-            onRestartQuiz={handleAdminResetGame}
+            onRestartQuiz={isAdmin ? handleAdminResetGame : undefined}
           />
         ) : gameState.phase === 'REVEALING' ? (
           /* Step 3: Question by Question Reveal & Cool 0-100 Spectrum Stats */
           <RevealQuestionView
+            key={gameState.currentRevealQuestionIndex}
             question={QUESTIONS[gameState.currentRevealQuestionIndex]}
             questionIndex={gameState.currentRevealQuestionIndex}
             totalQuestions={QUESTIONS.length}
             players={allPlayersList}
-            isAdmin={true}
+            isAdmin={isAdmin}
             onNextQuestion={handleAdminNextQuestion}
             onPrevQuestion={handleAdminPrevQuestion}
             onFinishQuiz={handleAdminFinishQuiz}

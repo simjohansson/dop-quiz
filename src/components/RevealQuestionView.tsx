@@ -89,7 +89,7 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
         </div>
         <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden shadow-inner">
           <div
-            className="bg-gradient-to-r from-lime-400 to-lemon-400 h-full rounded-full transition-all duration-300"
+            className="bg-linear-to-r from-lime-400 to-lemon-400 h-full rounded-full transition-all duration-300"
             style={{ width: `${((questionIndex + 1) / totalQuestions) * 100}%` }}
           />
         </div>
@@ -112,7 +112,7 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
               <button
                 type="button"
                 onClick={handleRevealAnswer}
-                className="py-4 px-8 rounded-3xl bg-gradient-to-r from-lime-400 via-lemon-400 to-lemon-500 text-slate-950 font-black text-lg flex items-center gap-2 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30"
+                className="py-4 px-8 rounded-3xl bg-linear-to-r from-lime-400 via-lemon-400 to-lemon-500 text-slate-950 font-black text-lg flex items-center gap-2 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30"
               >
                 <Sparkles className="w-6 h-6 stroke-[2.5]" />
                 <span>Avslöja rätt svar! 🍋</span>
@@ -124,7 +124,7 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
           ) : (
             <div className="w-full flex flex-col items-center animate-fade-in my-2">
               {/* Giant Correct Answer Badge (Light Mode) */}
-              <div className="flex flex-col items-center justify-center p-5 rounded-3xl bg-gradient-to-b from-amber-50 to-lemon-50/80 border-2 border-amber-300 shadow-sm w-full max-w-sm">
+              <div className="flex flex-col items-center justify-center p-5 rounded-3xl bg-linear-to-b from-amber-50 to-lemon-50/80 border-2 border-amber-300 shadow-xs w-full max-w-sm">
                 <span className="text-xs font-black uppercase tracking-widest text-amber-800">
                   RÄTT SVAR
                 </span>
@@ -147,7 +147,7 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowGuesses(true)}
-                  className="mt-5 py-3 px-6 rounded-2xl bg-white border-2 border-amber-300 hover:bg-amber-50 text-slate-800 font-black text-sm flex items-center gap-2 transition active:scale-95 shadow-sm"
+                  className="mt-5 py-3 px-6 rounded-2xl bg-white border-2 border-amber-300 hover:bg-amber-50 text-slate-800 font-black text-sm flex items-center gap-2 transition active:scale-95 shadow-xs"
                 >
                   <Target className="w-4 h-4 text-amber-600" />
                   <span>Visa allas gissningar på tallinjen 📊</span>
@@ -176,7 +176,7 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
                         <Trophy className="w-3 h-3 fill-slate-950" />
                         <span>{question.answer}</span>
                       </div>
-                      <div className="w-0.5 flex-1 bg-amber-500 shadow-sm" />
+                      <div className="w-0.5 flex-1 bg-amber-500 shadow-xs" />
                     </div>
 
                     {/* Plotted Player Guesses along the spectrum */}
@@ -217,7 +217,7 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
                     </div>
 
                     {/* The 0-100 Color Track Bar */}
-                    <div className="relative w-full h-3 rounded-full bg-gradient-to-r from-lime-500 via-lemon-400 to-orange-500 shadow-sm">
+                    <div className="relative w-full h-3 rounded-full bg-linear-to-r from-lime-500 via-lemon-400 to-orange-500 shadow-xs">
                       {[0, 25, 50, 75, 100].map((t) => (
                         <div
                           key={t}
@@ -302,6 +302,7 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
       </div>
 
       {/* Admin Flow Controls */}
+      {isAdmin && (
       <div className="w-full flex items-center justify-between gap-3 pt-1">
         <button
           type="button"
@@ -311,7 +312,7 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
             onPrevQuestion();
           }}
           disabled={questionIndex === 0}
-          className="py-3.5 px-4 rounded-2xl bg-white border-2 border-slate-200 text-slate-700 font-bold text-sm flex items-center gap-1.5 hover:bg-slate-50 active:scale-95 disabled:opacity-30 disabled:pointer-events-none transition shadow-sm"
+          className="py-3.5 px-4 rounded-2xl bg-white border-2 border-slate-200 text-slate-700 font-bold text-sm flex items-center gap-1.5 hover:bg-slate-50 active:scale-95 disabled:opacity-30 disabled:pointer-events-none transition shadow-xs"
         >
           <ChevronLeft className="w-5 h-5" />
           <span>Föregående</span>
@@ -321,7 +322,7 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
           <button
             type="button"
             onClick={onFinishQuiz}
-            className="flex-1 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-lime-400 via-lemon-400 to-lemon-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30"
+            className="flex-1 py-3.5 px-4 rounded-2xl bg-linear-to-r from-lime-400 via-lemon-400 to-lemon-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30"
           >
             <Trophy className="w-5 h-5 fill-slate-950" />
             <span>Avsluta & Visa Topplista! 🏆</span>
@@ -334,13 +335,14 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
               setShowGuesses(false);
               onNextQuestion();
             }}
-            className="flex-1 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-lemon-400 to-lemon-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30"
+            className="flex-1 py-3.5 px-4 rounded-2xl bg-linear-to-r from-lemon-400 to-lemon-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30"
           >
             <span>Nästa fråga</span>
             <ChevronRight className="w-5 h-5 stroke-[2.5]" />
           </button>
         )}
       </div>
+      )}
     </div>
   );
 };

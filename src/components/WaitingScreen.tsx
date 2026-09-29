@@ -65,14 +65,14 @@ export const WaitingScreen: React.FC<WaitingScreenProps> = ({
         </p>
 
         {/* Live Lobby Status Box */}
-        <div className="flex items-center gap-4 mt-4 px-5 py-2.5 rounded-2xl bg-white border-2 border-amber-200 shadow-sm">
+        <div className="flex items-center gap-4 mt-4 px-5 py-2.5 rounded-2xl bg-white border-2 border-amber-200 shadow-xs">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-amber-600" />
             <span className="text-xs font-bold text-slate-700">
               Klara: <strong className="text-slate-900 font-extrabold">{readyPlayers} / {totalPlayers}</strong>
             </span>
           </div>
-          <div className="h-4 w-[1px] bg-slate-200" />
+          <div className="h-4 w-px bg-slate-200" />
           <div className="flex items-center gap-1.5 text-lime-700 text-xs font-bold">
             <Clock className="w-3.5 h-3.5 animate-spin" />
             <span>Vänteläge aktivt</span>

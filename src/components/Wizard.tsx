@@ -54,7 +54,7 @@ export const Wizard: React.FC<WizardProps> = ({
           </div>
           <button
             onClick={() => setShowReviewModal(true)}
-            className="flex items-center gap-1.5 text-xs font-black text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-3 py-1.5 rounded-2xl shadow-sm transition"
+            className="flex items-center gap-1.5 text-xs font-black text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-3 py-1.5 rounded-2xl shadow-xs transition"
           >
             <Citrus className="w-3.5 h-3.5 text-amber-700" />
             <span>{answeredCount}/9 besvarade</span>
@@ -62,7 +62,7 @@ export const Wizard: React.FC<WizardProps> = ({
         </div>
 
         {/* 1-9 Fast Jump Bar */}
-        <div className="grid grid-cols-9 gap-1 sm:gap-1.5 p-1.5 bg-white border border-amber-200 rounded-2xl shadow-sm">
+        <div className="grid grid-cols-9 gap-1 sm:gap-1.5 p-1.5 bg-white border border-amber-200 rounded-2xl shadow-xs">
           {questions.map((q, idx) => {
             const isAnswered = answers[q.id] !== undefined;
             const isCurrent = idx === currentIndex;
@@ -74,7 +74,7 @@ export const Wizard: React.FC<WizardProps> = ({
                 onClick={() => setCurrentIndex(idx)}
                 className={`relative flex flex-col items-center justify-center py-2 rounded-xl text-xs font-black transition-all duration-200 ${
                   isCurrent
-                    ? 'bg-gradient-to-b from-lemon-300 to-lemon-400 text-slate-950 ring-2 ring-lemon-500 shadow-md scale-105 z-10'
+                    ? 'bg-linear-to-b from-lemon-300 to-lemon-400 text-slate-950 ring-2 ring-lemon-500 shadow-md scale-105 z-10'
                     : isAnswered
                     ? 'bg-lime-50 text-lime-800 border border-lime-400 hover:bg-lime-100'
                     : 'bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-700'
@@ -143,7 +143,7 @@ export const Wizard: React.FC<WizardProps> = ({
           type="button"
           onClick={handlePrev}
           disabled={currentIndex === 0}
-          className="flex-1 py-3.5 px-4 rounded-2xl bg-white border-2 border-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center gap-1.5 hover:bg-slate-50 active:scale-95 disabled:opacity-30 disabled:pointer-events-none transition shadow-sm"
+          className="flex-1 py-3.5 px-4 rounded-2xl bg-white border-2 border-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center gap-1.5 hover:bg-slate-50 active:scale-95 disabled:opacity-30 disabled:pointer-events-none transition shadow-xs"
         >
           <ChevronLeft className="w-5 h-5" />
           <span>Föregående</span>
@@ -153,7 +153,7 @@ export const Wizard: React.FC<WizardProps> = ({
           <button
             type="button"
             onClick={() => setShowReviewModal(true)}
-            className="flex-1 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-lime-400 via-lemon-400 to-lemon-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30"
+            className="flex-1 py-3.5 px-4 rounded-2xl bg-linear-to-r from-lime-400 via-lemon-400 to-lemon-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30"
           >
             <span>Granska svar</span>
             <Send className="w-4 h-4 stroke-[2.5]" />
@@ -162,7 +162,7 @@ export const Wizard: React.FC<WizardProps> = ({
           <button
             type="button"
             onClick={handleNext}
-            className="flex-1 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-lemon-400 to-lemon-500 text-slate-950 font-black text-sm flex items-center justify-center gap-1.5 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30"
+            className="flex-1 py-3.5 px-4 rounded-2xl bg-linear-to-r from-lemon-400 to-lemon-500 text-slate-950 font-black text-sm flex items-center justify-center gap-1.5 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30"
           >
             <span>Nästa</span>
             <ChevronRight className="w-5 h-5 stroke-[2.5]" />
@@ -172,7 +172,7 @@ export const Wizard: React.FC<WizardProps> = ({
 
       {/* Review Modal before Final Submission (Light Mode) */}
       {showReviewModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in">
           <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border-2 border-amber-200 flex flex-col max-h-[88vh]">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
@@ -241,7 +241,7 @@ export const Wizard: React.FC<WizardProps> = ({
                   onSubmit();
                 }}
                 disabled={!isAllAnswered}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-lime-400 via-lemon-400 to-lemon-500 text-slate-950 font-black text-base flex items-center justify-center gap-2 hover:brightness-105 active:scale-98 transition shadow-lg shadow-lemon-400/30 disabled:opacity-50"
+                className="w-full py-3.5 rounded-2xl bg-linear-to-r from-lime-400 via-lemon-400 to-lemon-500 text-slate-950 font-black text-base flex items-center justify-center gap-2 hover:brightness-105 active:scale-98 transition shadow-lg shadow-lemon-400/30 disabled:opacity-50"
               >
                 <Sparkles className="w-5 h-5 stroke-[2.5]" />
                 <span>Lämna in alla svar! 🍋</span>

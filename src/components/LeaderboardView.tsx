@@ -1,6 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { Question, Player } from '../types/game';
 import confetti from 'canvas-confetti';
+
+const StatsNerdSection = lazy(() =>
+  import('./StatsNerdSection').then((m) => ({ default: m.StatsNerdSection }))
+);
 import { Trophy, Award, Sparkles, Target, ChevronDown, ChevronUp, RotateCcw, Flame } from 'lucide-react';
 
 interface LeaderboardViewProps {
@@ -120,7 +124,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
               <span className="text-xs font-black text-slate-700 font-mono mt-0.5">
                 +{secondPlace.totalDiff} p
               </span>
-              <div className="w-full h-24 mt-2 rounded-t-2xl bg-gradient-to-t from-slate-200 to-slate-100 border-t-2 border-slate-400 flex items-center justify-center shadow-sm">
+              <div className="w-full h-24 mt-2 rounded-t-2xl bg-linear-to-t from-slate-200 to-slate-100 border-t-2 border-slate-400 flex items-center justify-center shadow-xs">
                 <span className="text-2xl font-black text-slate-500">2</span>
               </div>
             </div>
@@ -133,10 +137,10 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
               <span className="text-sm font-black text-slate-900 truncate max-w-[110px] text-center">
                 {firstPlace.player.name}
               </span>
-              <span className="text-sm font-black text-amber-900 font-mono mt-0.5 px-2.5 py-0.5 rounded-full bg-lemon-200 border border-lemon-400 shadow-sm">
+              <span className="text-sm font-black text-amber-900 font-mono mt-0.5 px-2.5 py-0.5 rounded-full bg-lemon-200 border border-lemon-400 shadow-xs">
                 +{firstPlace.totalDiff} p
               </span>
-              <div className="w-full h-32 mt-2 rounded-t-2xl bg-gradient-to-t from-lemon-200 via-lemon-100 to-white border-t-4 border-lemon-500 flex flex-col items-center justify-center shadow-lemon-soft">
+              <div className="w-full h-32 mt-2 rounded-t-2xl bg-linear-to-t from-lemon-200 via-lemon-100 to-white border-t-4 border-lemon-500 flex flex-col items-center justify-center shadow-lemon-soft">
                 <Trophy className="w-7 h-7 text-lemon-600 fill-lemon-500 mb-1" />
                 <span className="text-3xl font-black text-slate-900">1</span>
               </div>
@@ -153,7 +157,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
               <span className="text-xs font-black text-amber-800 font-mono mt-0.5">
                 +{thirdPlace.totalDiff} p
               </span>
-              <div className="w-full h-18 mt-2 rounded-t-2xl bg-gradient-to-t from-amber-100 to-amber-50 border-t-2 border-amber-500 flex items-center justify-center shadow-sm">
+              <div className="w-full h-18 mt-2 rounded-t-2xl bg-linear-to-t from-amber-100 to-amber-50 border-t-2 border-amber-500 flex items-center justify-center shadow-xs">
                 <span className="text-xl font-black text-amber-700">3</span>
               </div>
             </div>
@@ -188,7 +192,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                     <span
                       className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black ${
                         rank === 1
-                          ? 'bg-lemon-400 text-slate-950 shadow-sm border border-amber-400'
+                          ? 'bg-lemon-400 text-slate-950 shadow-xs border border-amber-400'
                           : rank === 2
                           ? 'bg-slate-300 text-slate-900'
                           : rank === 3
@@ -333,13 +337,17 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
         </div>
       </div>
 
+      <Suspense fallback={null}>
+        <StatsNerdSection players={players} questions={questions} />
+      </Suspense>
+
       {/* Restart / Play Again Button */}
       {onRestartQuiz && (
         <div className="pt-3">
           <button
             type="button"
             onClick={onRestartQuiz}
-            className="w-full py-4 px-6 rounded-2xl bg-white border-2 border-amber-300 hover:bg-amber-50 text-slate-900 font-black text-sm flex items-center justify-center gap-2 active:scale-95 transition shadow-sm"
+            className="w-full py-4 px-6 rounded-2xl bg-white border-2 border-amber-300 hover:bg-amber-50 text-slate-900 font-black text-sm flex items-center justify-center gap-2 active:scale-95 transition shadow-xs"
           >
             <RotateCcw className="w-4 h-4" />
             <span>Spela igen eller starta ny omgång 🍋</span>

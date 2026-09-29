@@ -75,14 +75,14 @@ export const SliderControl: React.FC<SliderControlProps> = ({
               value={manualInputText}
               onChange={(e) => setManualInputText(e.target.value)}
               onBlur={() => handleDirectSubmit()}
-              className="w-28 text-center text-4xl font-extrabold bg-white border-2 border-lemon-500 text-slate-900 rounded-2xl py-1 px-2 shadow-md focus:outline-none focus:ring-4 focus:ring-lemon-300"
+              className="w-28 text-center text-4xl font-extrabold bg-white border-2 border-lemon-500 text-slate-900 rounded-2xl py-1 px-2 shadow-md focus:outline-hidden focus:ring-4 focus:ring-lemon-300"
             />
             <button
               type="submit"
               className="p-3 rounded-xl bg-lemon-400 text-slate-950 font-bold hover:bg-lemon-300 transition active:scale-95 shadow-md"
               title="Spara värde"
             >
-              <Check className="w-6 h-6 stroke-[3]" />
+              <Check className="w-6 h-6 stroke-3" />
             </button>
           </form>
         ) : (
@@ -130,7 +130,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
           type="button"
           onClick={() => adjustValue(-10)}
           disabled={value <= 0}
-          className="flex-1 max-w-[70px] py-2 px-1 text-xs font-black rounded-xl bg-white hover:bg-amber-50 active:scale-95 disabled:opacity-30 disabled:pointer-events-none text-slate-700 border border-slate-200 shadow-sm transition"
+          className="flex-1 max-w-[70px] py-2 px-1 text-xs font-black rounded-xl bg-white hover:bg-amber-50 active:scale-95 disabled:opacity-30 disabled:pointer-events-none text-slate-700 border border-slate-200 shadow-xs transition"
         >
           -10
         </button>
@@ -138,26 +138,26 @@ export const SliderControl: React.FC<SliderControlProps> = ({
           type="button"
           onClick={() => adjustValue(-1)}
           disabled={value <= 0}
-          className="flex-1 max-w-[58px] py-2 px-1 flex items-center justify-center rounded-xl bg-white hover:bg-amber-50 active:scale-95 disabled:opacity-30 disabled:pointer-events-none text-slate-700 border border-slate-200 shadow-sm transition"
+          className="flex-1 max-w-[58px] py-2 px-1 flex items-center justify-center rounded-xl bg-white hover:bg-amber-50 active:scale-95 disabled:opacity-30 disabled:pointer-events-none text-slate-700 border border-slate-200 shadow-xs transition"
           title="Minska med 1"
         >
-          <Minus className="w-4 h-4 stroke-[3]" />
+          <Minus className="w-4 h-4 stroke-3" />
         </button>
 
         <button
           type="button"
           onClick={() => adjustValue(1)}
           disabled={value >= 100}
-          className="flex-1 max-w-[58px] py-2 px-1 flex items-center justify-center rounded-xl bg-white hover:bg-amber-50 active:scale-95 disabled:opacity-30 disabled:pointer-events-none text-slate-700 border border-slate-200 shadow-sm transition"
+          className="flex-1 max-w-[58px] py-2 px-1 flex items-center justify-center rounded-xl bg-white hover:bg-amber-50 active:scale-95 disabled:opacity-30 disabled:pointer-events-none text-slate-700 border border-slate-200 shadow-xs transition"
           title="Öka med 1"
         >
-          <Plus className="w-4 h-4 stroke-[3]" />
+          <Plus className="w-4 h-4 stroke-3" />
         </button>
         <button
           type="button"
           onClick={() => adjustValue(10)}
           disabled={value >= 100}
-          className="flex-1 max-w-[70px] py-2 px-1 text-xs font-black rounded-xl bg-white hover:bg-amber-50 active:scale-95 disabled:opacity-30 disabled:pointer-events-none text-slate-700 border border-slate-200 shadow-sm transition"
+          className="flex-1 max-w-[70px] py-2 px-1 text-xs font-black rounded-xl bg-white hover:bg-amber-50 active:scale-95 disabled:opacity-30 disabled:pointer-events-none text-slate-700 border border-slate-200 shadow-xs transition"
         >
           +10
         </button>

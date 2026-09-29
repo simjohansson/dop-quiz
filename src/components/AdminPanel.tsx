@@ -65,7 +65,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           <button
             type="button"
             onClick={() => setShowQrModal(true)}
-            className="p-2 rounded-xl bg-white border border-amber-300 text-slate-700 hover:bg-amber-50 shadow-sm transition"
+            className="p-2 rounded-xl bg-white border border-amber-300 text-slate-700 hover:bg-amber-50 shadow-xs transition"
             title="Visa QR-kod för deltagare"
           >
             <QrCode className="w-5 h-5 text-amber-700" />
@@ -73,7 +73,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-900 shadow-sm transition"
+            className="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-900 shadow-xs transition"
             title="Stäng adminvy"
           >
             <X className="w-5 h-5" />
@@ -85,7 +85,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       <div className="space-y-3">
         {/* Start Reveal Button */}
         {gamePhase !== 'REVEALING' && gamePhase !== 'LEADERBOARD' && (
-          <div className="p-5 rounded-3xl bg-gradient-to-r from-amber-50 via-lemon-50 to-lime-50 border-2 border-amber-300 shadow-sm">
+          <div className="p-5 rounded-3xl bg-linear-to-r from-amber-50 via-lemon-50 to-lime-50 border-2 border-amber-300 shadow-xs">
             <h3 className="text-sm font-black text-slate-900 mb-1">
               Redo att avsluta quizet och rätta?
             </h3>
@@ -96,7 +96,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               type="button"
               onClick={onStartReveal}
               disabled={players.length === 0}
-              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-lime-400 via-lemon-400 to-lemon-500 text-slate-950 font-black text-base flex items-center justify-center gap-2 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30 disabled:opacity-40"
+              className="w-full py-4 px-6 rounded-2xl bg-linear-to-r from-lime-400 via-lemon-400 to-lemon-500 text-slate-950 font-black text-base flex items-center justify-center gap-2 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30 disabled:opacity-40"
             >
               <Play className="w-5 h-5 fill-slate-950 stroke-none" />
               <span>Avsluta quizet & Starta rättning! 🍋</span>
@@ -106,7 +106,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
         {/* Reveal Navigation Shortcuts (if in REVEALING) */}
         {gamePhase === 'REVEALING' && (
-          <div className="p-4 rounded-3xl bg-white border-2 border-amber-200 shadow-sm">
+          <div className="p-4 rounded-3xl bg-white border-2 border-amber-200 shadow-xs">
             <h3 className="text-xs font-black uppercase text-slate-700 mb-2">
               Snabbhopp under rättning:
             </h3>
@@ -118,7 +118,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   onClick={() => onJumpToQuestion(idx)}
                   className={`py-2 text-xs font-black rounded-xl transition ${
                     idx === currentQuestionIndex
-                      ? 'bg-lemon-400 text-slate-950 shadow-sm border border-amber-500'
+                      ? 'bg-lemon-400 text-slate-950 shadow-xs border border-amber-500'
                       : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-amber-50'
                   }`}
                 >
@@ -129,7 +129,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <button
               type="button"
               onClick={onJumpToLeaderboard}
-              className="w-full py-3 rounded-2xl bg-gradient-to-r from-lime-400 to-lemon-400 text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-sm"
+              className="w-full py-3 rounded-2xl bg-linear-to-r from-lime-400 to-lemon-400 text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-xs"
             >
               <Trophy className="w-4 h-4 fill-slate-950" />
               <span>Hoppa direkt till slutgiltig topplista 🏆</span>
@@ -138,7 +138,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         )}
 
         {/* Demo / Bot Controls */}
-        <div className="p-4 rounded-3xl bg-white border-2 border-amber-200 flex flex-wrap items-center justify-between gap-2 shadow-sm">
+        <div className="p-4 rounded-3xl bg-white border-2 border-amber-200 flex flex-wrap items-center justify-between gap-2 shadow-xs">
           <div>
             <h4 className="text-xs font-black uppercase text-amber-800">
               Test- och demoläge:
@@ -251,7 +251,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
       {/* QR Code Modal for joining */}
       {showQrModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 border-2 border-amber-300 shadow-2xl flex flex-col items-center text-center">
             <h3 className="text-xl font-black text-slate-900 font-['Space_Grotesk'] mb-1">
               Gå med i Citron-Quizet 🍋
@@ -278,7 +278,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <button
               type="button"
               onClick={() => setShowQrModal(false)}
-              className="w-full py-3 rounded-2xl bg-lemon-400 text-slate-950 font-black text-sm hover:bg-lemon-300 transition shadow-sm"
+              className="w-full py-3 rounded-2xl bg-lemon-400 text-slate-950 font-black text-sm hover:bg-lemon-300 transition shadow-xs"
             >
               Stäng QR-fönstret
             </button>

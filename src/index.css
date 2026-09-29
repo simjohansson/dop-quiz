@@ -1,6 +1,87 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --color-lemon-50: #fefce8;
+  --color-lemon-100: #fef9c3;
+  --color-lemon-200: #fef08a;
+  --color-lemon-300: #fde047;
+  --color-lemon-400: #facc15;
+  --color-lemon-500: #eab308;
+  --color-lemon-600: #ca8a04;
+  --color-lemon-700: #a16207;
+  --color-lemon-800: #854d0e;
+  --color-lemon-900: #713f12;
+  --color-lemon-950: #422006;
+
+  --color-lime-50: #f7fee7;
+  --color-lime-100: #ecfccb;
+  --color-lime-200: #d9f99d;
+  --color-lime-300: #bef264;
+  --color-lime-400: #a3e635;
+  --color-lime-500: #84cc16;
+  --color-lime-600: #65a30d;
+  --color-lime-700: #4d7c0f;
+  --color-lime-800: #3f6212;
+  --color-lime-900: #365314;
+
+  --shadow-lemon-soft:
+    0 4px 20px -2px rgba(234, 179, 8, 0.15), 0 2px 6px -1px rgba(0, 0, 0, 0.05);
+  --shadow-lemon-card:
+    0 10px 30px -5px rgba(202, 138, 4, 0.12),
+    0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lemon-glow: 0 0 25px rgba(250, 204, 21, 0.5);
+
+  --animate-bounce-short: bounce 0.5s ease-in-out 1;
+  --animate-wiggle: wiggle 0.5s ease-in-out infinite;
+  --animate-float: float 3s ease-in-out infinite;
+  --animate-squeeze: squeeze 1.5s ease-in-out infinite;
+
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(-4deg);
+    }
+    50% {
+      transform: rotate(4deg);
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+  @keyframes squeeze {
+    0%,
+    100% {
+      transform: scale(1, 1);
+    }
+    50% {
+      transform: scale(1.08, 0.92);
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
 
 @layer base {
   * {

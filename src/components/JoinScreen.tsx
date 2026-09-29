@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { ArrowRight, ShieldCheck } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 interface JoinScreenProps {
   onJoin: (name: string, icon: string) => void;
-  onOpenAdmin: () => void;
 }
 
 const CITRUS_ICONS = ['🍋', '🍋‍🟩', '🍹', '🌸', '👑', '⚡', '🎂', '⚓'];
 
-export const JoinScreen: React.FC<JoinScreenProps> = ({ onJoin, onOpenAdmin }) => {
+export const JoinScreen: React.FC<JoinScreenProps> = ({ onJoin }) => {
   const [name, setName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('🍋');
 
@@ -22,18 +21,6 @@ export const JoinScreen: React.FC<JoinScreenProps> = ({ onJoin, onOpenAdmin }) =
 
   return (
     <div className="w-full max-w-md mx-auto min-h-[92vh] flex flex-col justify-between py-6 px-4 animate-fade-in">
-      {/* Top Admin Quick Access Button */}
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={onOpenAdmin}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-amber-200 hover:border-amber-400 text-[11px] font-bold text-slate-700 shadow-sm transition"
-        >
-          <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
-          <span>Spelledare / Admin</span>
-        </button>
-      </div>
-
       {/* Center Branding & Form (Light Mode) */}
       <div className="flex-1 flex flex-col justify-center items-center my-4">
         {/* Animated Brand Lemon */}
@@ -46,7 +33,7 @@ export const JoinScreen: React.FC<JoinScreenProps> = ({ onJoin, onOpenAdmin }) =
 
         {/* Title */}
         <div className="text-center mb-6">
-          <span className="px-3.5 py-1 text-xs font-black uppercase tracking-wider rounded-full bg-lime-100 border border-lime-300 text-lime-900 inline-block mb-2 shadow-sm">
+          <span className="px-3.5 py-1 text-xs font-black uppercase tracking-wider rounded-full bg-lime-100 border border-lime-300 text-lime-900 inline-block mb-2 shadow-xs">
             0–100 Trivia Party 🍋
           </span>
           <h1 className="text-3xl md:text-4xl font-black text-slate-900 font-['Space_Grotesk'] tracking-tight">
@@ -77,7 +64,7 @@ export const JoinScreen: React.FC<JoinScreenProps> = ({ onJoin, onOpenAdmin }) =
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Skriv ditt namn här..."
-                className="w-full py-3.5 px-4 rounded-2xl bg-amber-50/50 border-2 border-amber-200 text-slate-900 placeholder:text-slate-400 font-bold text-base focus:outline-none focus:ring-4 focus:ring-lemon-300 focus:border-lemon-400 shadow-inner"
+                className="w-full py-3.5 px-4 rounded-2xl bg-amber-50/50 border-2 border-amber-200 text-slate-900 placeholder:text-slate-400 font-bold text-base focus:outline-hidden focus:ring-4 focus:ring-lemon-300 focus:border-lemon-400 shadow-inner"
               />
             </div>
 
@@ -94,7 +81,7 @@ export const JoinScreen: React.FC<JoinScreenProps> = ({ onJoin, onOpenAdmin }) =
                     onClick={() => setSelectedIcon(icon)}
                     className={`py-2 text-2xl rounded-2xl transition-all duration-150 ${
                       selectedIcon === icon
-                        ? 'bg-lemon-200 border-2 border-lemon-500 scale-110 shadow-sm'
+                        ? 'bg-lemon-200 border-2 border-lemon-500 scale-110 shadow-xs'
                         : 'bg-slate-50 border border-slate-200 hover:bg-amber-50'
                     }`}
                   >
@@ -108,7 +95,7 @@ export const JoinScreen: React.FC<JoinScreenProps> = ({ onJoin, onOpenAdmin }) =
             <button
               type="submit"
               disabled={!name.trim()}
-              className="w-full mt-4 py-4 px-6 rounded-2xl bg-gradient-to-r from-lime-400 via-lemon-400 to-lemon-500 text-slate-950 font-black text-base flex items-center justify-center gap-2 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30 disabled:opacity-40 disabled:pointer-events-none"
+              className="w-full mt-4 py-4 px-6 rounded-2xl bg-linear-to-r from-lime-400 via-lemon-400 to-lemon-500 text-slate-950 font-black text-base flex items-center justify-center gap-2 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30 disabled:opacity-40 disabled:pointer-events-none"
             >
               <span>Gå med i quizet! 🍋</span>
               <ArrowRight className="w-5 h-5 stroke-[2.5]" />
