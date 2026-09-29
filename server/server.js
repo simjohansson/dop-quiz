@@ -55,6 +55,7 @@ const gameState = {
   isAnswerRevealed: false,
   isGuessesRevealed: false,
   startedAt: null,
+  juice: { total: 0, byPlayer: {} },
   ...loadSavedState(),
 };
 
@@ -77,6 +78,21 @@ function broadcastState() {
   io.emit('game-state', gameState);
   saveState();
 }
+
+// Squeezes arrive in bursts from many phones, so batch them into one small update per tick.
+let recentSqueezes = {};
+let juiceTimer = null;
+function queueJuiceUpdate() {
+  if (juiceTimer) return;
+  juiceTimer = setTimeout(() => {
+    juiceTimer = null;
+    io.emit('juice-update', { ...gameState.juice, recent: recentSqueezes });
+    recentSqueezes = {};
+    saveState();
+  }, 200);
+}
+
+const MAX_SQUEEZES_PER_SECOND = 12;
 
 const canAnswer = () => gameState.phase === 'LOBBY' || gameState.phase === 'ANSWERING';
 
@@ -136,6 +152,23 @@ app.use(express.static(distPath));
 io.on('connection', (socket) => {
   // Send current state on join
   socket.emit('game-state', gameState);
+  socket.data.squeezeWindowStart = 0;
+  socket.data.squeezeCount = 0;
+
+  socket.on('squeeze', ({ playerId }) => {
+    if (!gameState.players[playerId]) return;
+    const now = Date.now();
+    if (now - socket.data.squeezeWindowStart > 1000) {
+      socket.data.squeezeWindowStart = now;
+      socket.data.squeezeCount = 0;
+    }
+    if (++socket.data.squeezeCount > MAX_SQUEEZES_PER_SECOND) return;
+
+    gameState.juice.total++;
+    gameState.juice.byPlayer[playerId] = (gameState.juice.byPlayer[playerId] || 0) + 1;
+    recentSqueezes[playerId] = (recentSqueezes[playerId] || 0) + 1;
+    queueJuiceUpdate();
+  });
 
   // Player joins
   socket.on('join-game', ({ playerId, name }) => {
@@ -238,6 +271,7 @@ io.on('connection', (socket) => {
     gameState.currentRevealQuestionIndex = 0;
     gameState.isAnswerRevealed = false;
     gameState.isGuessesRevealed = false;
+    gameState.juice = { total: 0, byPlayer: {} };
     Object.keys(gameState.players).forEach((id) => {
       gameState.players[id].answers = {};
       gameState.players[id].isSubmitted = false;

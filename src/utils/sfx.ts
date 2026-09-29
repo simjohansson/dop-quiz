@@ -67,6 +67,23 @@ export function playTada() {
   });
 }
 
+export function playSquish() {
+  const ac = isSoundEnabled() ? getContext() : null;
+  if (!ac) return;
+
+  const t = ac.currentTime;
+  const osc = ac.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(520 + Math.random() * 120, t);
+  osc.frequency.exponentialRampToValueAtTime(180, t + 0.12);
+  const gain = ac.createGain();
+  gain.gain.setValueAtTime(0.18, t);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+  osc.connect(gain).connect(ac.destination);
+  osc.start(t);
+  osc.stop(t + 0.15);
+}
+
 export const vibrate = (pattern: number[]) => {
   if (isSoundEnabled()) navigator.vibrate?.(pattern);
 };

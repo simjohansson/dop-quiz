@@ -3,6 +3,7 @@ import { GameState, Player, Question } from '../types/game';
 import { JoinQrCode } from './JoinQrCode';
 import { RevealQuestionView } from './RevealQuestionView';
 import { LeaderboardView } from './LeaderboardView';
+import { SQUEEZES_PER_GLASS, getTopSqueezer } from '../utils/juice';
 
 interface TvViewProps {
   gameState: GameState;
@@ -40,12 +41,19 @@ export const TvView: React.FC<TvViewProps> = ({ gameState, players, participants
   if (gameState.phase === 'LEADERBOARD') {
     return (
       <div className="tv-mode">
-        <LeaderboardView players={participants} questions={questions} />
+        <LeaderboardView
+          players={participants}
+          questions={questions}
+          juice={gameState.juice}
+          playersById={gameState.players}
+        />
       </div>
     );
   }
 
   const readyCount = players.filter((p) => p.isSubmitted).length;
+  const juiceTotal = gameState.juice?.total ?? 0;
+  const topSqueezer = getTopSqueezer(gameState.juice, gameState.players);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6 py-8 grid md:grid-cols-2 gap-10 items-center min-h-[85vh]">
@@ -82,6 +90,16 @@ export const TvView: React.FC<TvViewProps> = ({ gameState, players, participants
                 {p.isSubmitted ? '✅' : '✍️'} {p.name}
               </span>
             ))}
+          </div>
+        )}
+        {juiceTotal > 0 && (
+          <div className="mt-auto pt-4 border-t border-amber-100 text-lg font-bold text-slate-700 flex flex-wrap gap-x-4">
+            <span>🥤 {Math.floor(juiceTotal / SQUEEZES_PER_GLASS)} glas lemonad pressade</span>
+            {topSqueezer && (
+              <span>
+                🥇 {topSqueezer.name} ({topSqueezer.count} pressningar)
+              </span>
+            )}
           </div>
         )}
       </div>

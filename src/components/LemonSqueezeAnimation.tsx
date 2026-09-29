@@ -10,7 +10,13 @@ const SPARKLE = 'M0 -6 L1.5 -1.5 L6 0 L1.5 1.5 L0 6 L-1.5 1.5 L-6 0 L-1.5 -1.5 Z
 const delay = (s: number, extra?: Record<string, string>) =>
   ({ animationDelay: `${s}s`, ...extra }) as React.CSSProperties;
 
-export const LemonSqueezeAnimation: React.FC<{ className?: string }> = ({ className }) => (
+interface LemonSqueezeAnimationProps {
+  className?: string;
+  /** 0–1. When set, the glass shows this level instead of filling up on its own. */
+  level?: number;
+}
+
+export const LemonSqueezeAnimation: React.FC<LemonSqueezeAnimationProps> = ({ className, level }) => (
   <svg
     viewBox="0 0 200 200"
     className={`squeeze-scene ${className ?? ''}`}
@@ -68,7 +74,17 @@ export const LemonSqueezeAnimation: React.FC<{ className?: string }> = ({ classN
 
     {/* Lemonade */}
     <g clipPath="url(#squeeze-glass-clip)">
-      <g className="squeeze-fill">
+      <g
+        className={level === undefined ? 'squeeze-fill' : undefined}
+        style={
+          level === undefined
+            ? undefined
+            : {
+                transform: `translateY(${(1 - Math.min(1, Math.max(0, level))) * 64}px)`,
+                transition: 'transform 0.4s ease-out',
+              }
+        }
+      >
         <g className="squeeze-wave">
           <path d={WAVE_FILL} fill="url(#squeeze-juice-grad)" fillOpacity="0.92" />
           <path d={WAVE_TOP} fill="none" stroke="#fef9c3" strokeWidth="1.5" />

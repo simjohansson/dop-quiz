@@ -1,7 +1,8 @@
 import React from 'react';
-import { Question } from '../types/game';
+import type { Socket } from 'socket.io-client';
+import { Juice, Player, Question } from '../types/game';
 import { CheckCircle2, Clock, Users, ArrowLeft } from 'lucide-react';
-import { LemonSqueezeAnimation } from './LemonSqueezeAnimation';
+import { SqueezeParty } from './SqueezeParty';
 
 interface WaitingScreenProps {
   playerName: string;
@@ -10,6 +11,10 @@ interface WaitingScreenProps {
   totalPlayers: number;
   readyPlayers: number;
   onEditAnswers?: () => void;
+  socket: Socket | null;
+  playerId: string;
+  players: Record<string, Player>;
+  juice?: Juice;
 }
 
 export const WaitingScreen: React.FC<WaitingScreenProps> = ({
@@ -19,14 +24,18 @@ export const WaitingScreen: React.FC<WaitingScreenProps> = ({
   totalPlayers,
   readyPlayers,
   onEditAnswers,
+  socket,
+  playerId,
+  players,
+  juice,
 }) => {
   return (
     <div className="w-full max-w-lg mx-auto flex flex-col min-h-[85vh] justify-between p-4 animate-fade-in">
       {/* Top Banner */}
       <div className="flex flex-col items-center text-center pt-3">
-        <LemonSqueezeAnimation className="w-44 h-44 mb-1" />
+        <SqueezeParty socket={socket} playerId={playerId} players={players} juice={juice} />
 
-        <span className="px-3.5 py-1 text-xs font-black uppercase tracking-wider rounded-full bg-lime-100 border border-lime-400 text-lime-900 mb-2">
+        <span className="mt-3 px-3.5 py-1 text-xs font-black uppercase tracking-wider rounded-full bg-lime-100 border border-lime-400 text-lime-900 mb-2">
           Svaren är inskickade! 🍋
         </span>
         <h2 className="text-2xl md:text-3xl font-black text-slate-900 font-['Space_Grotesk'] tracking-tight">

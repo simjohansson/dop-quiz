@@ -1,8 +1,9 @@
 import React, { Suspense, lazy, useEffect, useState } from 'react';
-import { Question, Player } from '../types/game';
+import { Question, Player, Juice } from '../types/game';
 import confetti from 'canvas-confetti';
 import { Trophy, Award, Sparkles, Target, ChevronDown, ChevronUp, RotateCcw, Flame } from 'lucide-react';
 import { computeStandings, guessOf } from '../utils/standings';
+import { SQUEEZES_PER_GLASS, getTopSqueezer } from '../utils/juice';
 
 const StatsNerdSection = lazy(() =>
   import('./StatsNerdSection').then((m) => ({ default: m.StatsNerdSection }))
@@ -11,15 +12,22 @@ const StatsNerdSection = lazy(() =>
 interface LeaderboardViewProps {
   players: Player[];
   questions: Question[];
+  juice?: Juice;
+  /** All players (also spectators) so the top squeezer can be named even if they didn't answer. */
+  playersById?: Record<string, Player>;
   onRestartQuiz?: () => void;
 }
 
 export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
   players,
   questions,
+  juice,
+  playersById = {},
   onRestartQuiz,
 }) => {
   const [expandedPlayerId, setExpandedPlayerId] = useState<string | null>(null);
+  const topSqueezer = getTopSqueezer(juice, playersById);
+  const glassesSqueezed = Math.floor((juice?.total ?? 0) / SQUEEZES_PER_GLASS);
 
   // Calculate scores: sum of absolute differences across all questions
   const playerResults = players.map((player) => {
@@ -346,6 +354,23 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
               Största enskilda miss (±{biggestGambler?.maxSingleDiff})
             </span>
           </div>
+
+          {/* Citronpressaren */}
+          {topSqueezer && (
+            <div className="col-span-2 p-3 rounded-2xl bg-lemon-50 border border-lemon-400 flex items-center gap-3">
+              <span className="text-3xl">🍋💪</span>
+              <div className="flex flex-col min-w-0">
+                <span className="font-black text-amber-800 uppercase text-[11px]">
+                  Bästa Citronpressaren
+                </span>
+                <span className="font-bold text-slate-900 mt-0.5 truncate">{topSqueezer.name}</span>
+                <span className="text-[10px] text-slate-600">
+                  {topSqueezer.count} pressningar i väntrummet – tillsammans blev det {glassesSqueezed} glas
+                  lemonad 🥤
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

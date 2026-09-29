@@ -42,6 +42,16 @@ export interface GameState {
   isAnswerRevealed: boolean;          // Has true answer been shown for current question?
   isGuessesRevealed: boolean;         // Has everyone's guesses been shown?
   startedAt: number | null;
+  juice?: Juice;
+}
+
+export interface Juice {
+  total: number;
+  byPlayer: Record<string, number>; // playerId -> squeezes
+}
+
+export interface JuiceUpdate extends Juice {
+  recent: Record<string, number>; // playerId -> squeezes since the previous update
 }
 
 export interface QuestionStats {

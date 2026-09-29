@@ -339,6 +339,15 @@
   transform-origin: center;
   animation: squeeze-twinkle 2.2s ease-in-out infinite;
 }
+.squeeze-float {
+  animation: squeeze-float 1.4s ease-out forwards;
+}
+
+@keyframes squeeze-float {
+  0% { opacity: 0; transform: translate(-50%, 10px) scale(0.7); }
+  15% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -70px) scale(1); }
+}
 
 @keyframes squeeze-glow {
   0%, 100% { transform: scale(0.94); opacity: 0.8; }

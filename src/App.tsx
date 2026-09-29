@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { QUESTIONS } from './data/questions';
-import { Player, GameState } from './types/game';
+import { Player, GameState, JuiceUpdate } from './types/game';
 import { JoinScreen } from './components/JoinScreen';
 import { Wizard } from './components/Wizard';
 import { WaitingScreen } from './components/WaitingScreen';
@@ -112,6 +112,10 @@ export const App: React.FC = () => {
         localStorage.setItem('lemon_quiz_round', state.roundId);
       }
       setGameState(state);
+    });
+
+    s.on('juice-update', ({ total, byPlayer }: JuiceUpdate) => {
+      setGameState((prev) => ({ ...prev, juice: { total, byPlayer } }));
     });
 
     setSocket(s);
@@ -382,6 +386,8 @@ export const App: React.FC = () => {
           <LeaderboardView
             players={participants}
             questions={QUESTIONS}
+            juice={gameState.juice}
+            playersById={gameState.players}
             onRestartQuiz={isAdmin ? handleAdminResetGame : undefined}
           />
         ) : gameState.phase === 'REVEALING' ? (
@@ -412,6 +418,10 @@ export const App: React.FC = () => {
             totalPlayers={allPlayersList.length}
             readyPlayers={readyPlayersCount}
             onEditAnswers={() => setIsSubmittedLocally(false)}
+            socket={socket}
+            playerId={playerId}
+            players={gameState.players}
+            juice={gameState.juice}
           />
         ) : (
           /* Step 2a: Answering in 1-9 Wizard */
