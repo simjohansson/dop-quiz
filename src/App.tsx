@@ -9,7 +9,8 @@ import { RevealQuestionView } from './components/RevealQuestionView';
 import { LeaderboardView } from './components/LeaderboardView';
 import { AdminPanel } from './components/AdminPanel';
 import { TvView } from './components/TvView';
-import { ShieldCheck, ArrowLeft, Volume2, VolumeX } from 'lucide-react';
+import { RenameDialog } from './components/RenameDialog';
+import { ShieldCheck, ArrowLeft, Volume2, VolumeX, Pencil } from 'lucide-react';
 import { useWakeLock } from './hooks/useWakeLock';
 import { isSoundEnabled, setSoundEnabled, unlockAudio } from './utils/sfx';
 import { isParticipant } from './utils/standings';
@@ -63,6 +64,7 @@ export const App: React.FC = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnectionLost, setIsConnectionLost] = useState(false);
   const [soundOn, setSoundOn] = useState(isSoundEnabled);
+  const [isRenaming, setIsRenaming] = useState(false);
 
   const playerNameRef = useRef(playerName);
   playerNameRef.current = playerName;
@@ -291,6 +293,17 @@ export const App: React.FC = () => {
 
           {/* Right Header Navigation */}
           <div className="flex items-center gap-2">
+            {playerName && !isTv && (
+              <button
+                type="button"
+                onClick={() => setIsRenaming(true)}
+                className="flex items-center gap-1 max-w-[130px] px-2.5 py-1.5 rounded-full bg-white border border-amber-200 hover:border-amber-400 text-[11px] font-bold text-slate-700 transition shadow-xs"
+                title="Byt namn"
+              >
+                <span className="truncate">{playerName}</span>
+                <Pencil className="w-3 h-3 shrink-0 text-amber-600" />
+              </button>
+            )}
             <button
               type="button"
               onClick={toggleSound}
@@ -322,6 +335,14 @@ export const App: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {isRenaming && (
+        <RenameDialog
+          currentName={playerName}
+          onSave={handleJoin}
+          onClose={() => setIsRenaming(false)}
+        />
+      )}
 
       {isConnectionLost && (
         <div className="sticky top-14 z-30 mx-auto mt-2 px-3 py-1.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold shadow-sm animate-pulse">

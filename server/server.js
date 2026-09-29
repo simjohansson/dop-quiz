@@ -139,19 +139,20 @@ io.on('connection', (socket) => {
 
   // Player joins
   socket.on('join-game', ({ playerId, name }) => {
-    if (!playerId || !name) return;
+    const cleanName = typeof name === 'string' ? name.trim().slice(0, 24) : '';
+    if (!playerId || !cleanName) return;
 
     if (!gameState.players[playerId]) {
       gameState.players[playerId] = {
         id: playerId,
-        name: name.trim(),
+        name: cleanName,
         answers: {},
         isSubmitted: false,
         connected: true,
         isBot: false,
       };
     } else {
-      gameState.players[playerId].name = name.trim();
+      gameState.players[playerId].name = cleanName;
       gameState.players[playerId].connected = true;
     }
 
