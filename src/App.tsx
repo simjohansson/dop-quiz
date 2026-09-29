@@ -163,6 +163,14 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleAdminRevealAnswer = () => {
+    socket?.emit('admin-reveal-answer');
+  };
+
+  const handleAdminRevealGuesses = () => {
+    socket?.emit('admin-reveal-guesses');
+  };
+
   const handleAdminAddBots = () => {
     if (socket) {
       socket.emit('admin-add-bots');
@@ -297,6 +305,10 @@ export const App: React.FC = () => {
             totalQuestions={QUESTIONS.length}
             players={allPlayersList}
             isAdmin={isAdmin}
+            isAnswerRevealed={gameState.isAnswerRevealed}
+            isGuessesRevealed={gameState.isGuessesRevealed}
+            onRevealAnswer={handleAdminRevealAnswer}
+            onRevealGuesses={handleAdminRevealGuesses}
             onNextQuestion={handleAdminNextQuestion}
             onPrevQuestion={handleAdminPrevQuestion}
             onFinishQuiz={handleAdminFinishQuiz}

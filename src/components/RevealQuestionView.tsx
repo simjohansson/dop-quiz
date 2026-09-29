@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Question, Player } from '../types/game';
 import confetti from 'canvas-confetti';
 import { Trophy, Sparkles, ChevronLeft, ChevronRight, Award, Flame, Target } from 'lucide-react';
@@ -9,6 +9,10 @@ interface RevealQuestionViewProps {
   totalQuestions: number;
   players: Player[];
   isAdmin: boolean;
+  isAnswerRevealed: boolean;
+  isGuessesRevealed: boolean;
+  onRevealAnswer: () => void;
+  onRevealGuesses: () => void;
   onNextQuestion: () => void;
   onPrevQuestion: () => void;
   onFinishQuiz: () => void;
@@ -20,27 +24,27 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
   totalQuestions,
   players,
   isAdmin,
+  isAnswerRevealed: showAnswer,
+  isGuessesRevealed: showGuesses,
+  onRevealAnswer,
+  onRevealGuesses,
   onNextQuestion,
   onPrevQuestion,
   onFinishQuiz,
 }) => {
-  const [showAnswer, setShowAnswer] = useState(false);
-  const [showGuesses, setShowGuesses] = useState(false);
-
-  // Trigger lemon confetti when correct answer is revealed!
-  const triggerConfetti = () => {
-    confetti({
-      particleCount: 80,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#facc15', '#fde047', '#84cc16', '#3b82f6', '#f97316'],
-    });
-  };
-
-  const handleRevealAnswer = () => {
-    setShowAnswer(true);
-    triggerConfetti();
-  };
+  // Only celebrate the moment of reveal, not when (re)joining an already revealed question.
+  const wasAnswerRevealed = useRef(showAnswer);
+  useEffect(() => {
+    if (showAnswer && !wasAnswerRevealed.current) {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#facc15', '#fde047', '#84cc16', '#3b82f6', '#f97316'],
+      });
+    }
+    wasAnswerRevealed.current = showAnswer;
+  }, [showAnswer]);
 
   // Compile guesses
   const playerGuesses = players
@@ -108,19 +112,29 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
 
           {/* Correct Answer Section */}
           {!showAnswer ? (
-            <div className="my-6 flex flex-col items-center animate-pulse">
-              <button
-                type="button"
-                onClick={handleRevealAnswer}
-                className="py-4 px-8 rounded-3xl bg-linear-to-r from-lime-400 via-lemon-400 to-lemon-500 text-slate-950 font-black text-lg flex items-center gap-2 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30"
-              >
-                <Sparkles className="w-6 h-6 stroke-[2.5]" />
-                <span>Avslöja rätt svar! 🍋</span>
-              </button>
-              <p className="text-xs text-slate-500 font-semibold mt-2">
-                Klicka för att se sanningen
-              </p>
-            </div>
+            isAdmin ? (
+              <div className="my-6 flex flex-col items-center animate-pulse">
+                <button
+                  type="button"
+                  onClick={onRevealAnswer}
+                  className="py-4 px-8 rounded-3xl bg-linear-to-r from-lime-400 via-lemon-400 to-lemon-500 text-slate-950 font-black text-lg flex items-center gap-2 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30"
+                >
+                  <Sparkles className="w-6 h-6 stroke-[2.5]" />
+                  <span>Avslöja rätt svar! 🍋</span>
+                </button>
+                <p className="text-xs text-slate-500 font-semibold mt-2">
+                  Svaret visas samtidigt för alla spelare
+                </p>
+              </div>
+            ) : (
+              <div className="my-6 flex flex-col items-center animate-pulse">
+                <div className="text-5xl mb-2">🥁</div>
+                <p className="text-sm font-black text-slate-800">Trumvirvel…</p>
+                <p className="text-xs text-slate-500 font-semibold mt-1">
+                  Väntar på att spelledaren avslöjar rätt svar
+                </p>
+              </div>
+            )
           ) : (
             <div className="w-full flex flex-col items-center animate-fade-in my-2">
               {/* Giant Correct Answer Badge (Light Mode) */}
@@ -144,14 +158,20 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
 
               {/* Reveal Guesses button toggle */}
               {!showGuesses ? (
-                <button
-                  type="button"
-                  onClick={() => setShowGuesses(true)}
-                  className="mt-5 py-3 px-6 rounded-2xl bg-white border-2 border-amber-300 hover:bg-amber-50 text-slate-800 font-black text-sm flex items-center gap-2 transition active:scale-95 shadow-xs"
-                >
-                  <Target className="w-4 h-4 text-amber-600" />
-                  <span>Visa allas gissningar på tallinjen 📊</span>
-                </button>
+                isAdmin ? (
+                  <button
+                    type="button"
+                    onClick={onRevealGuesses}
+                    className="mt-5 py-3 px-6 rounded-2xl bg-white border-2 border-amber-300 hover:bg-amber-50 text-slate-800 font-black text-sm flex items-center gap-2 transition active:scale-95 shadow-xs"
+                  >
+                    <Target className="w-4 h-4 text-amber-600" />
+                    <span>Visa allas gissningar på tallinjen 📊</span>
+                  </button>
+                ) : (
+                  <p className="mt-5 text-xs text-slate-500 font-semibold animate-pulse">
+                    Snart visas allas gissningar… 📊
+                  </p>
+                )
               ) : (
                 /* --- GRAPHICAL STATISTICS & 0-100 SPECTRUM (Light Mode) --- */
                 <div className="w-full mt-6 animate-fade-in">
@@ -306,11 +326,7 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
       <div className="w-full flex items-center justify-between gap-3 pt-1">
         <button
           type="button"
-          onClick={() => {
-            setShowAnswer(false);
-            setShowGuesses(false);
-            onPrevQuestion();
-          }}
+          onClick={onPrevQuestion}
           disabled={questionIndex === 0}
           className="py-3.5 px-4 rounded-2xl bg-white border-2 border-slate-200 text-slate-700 font-bold text-sm flex items-center gap-1.5 hover:bg-slate-50 active:scale-95 disabled:opacity-30 disabled:pointer-events-none transition shadow-xs"
         >
@@ -330,11 +346,7 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
         ) : (
           <button
             type="button"
-            onClick={() => {
-              setShowAnswer(false);
-              setShowGuesses(false);
-              onNextQuestion();
-            }}
+            onClick={onNextQuestion}
             className="flex-1 py-3.5 px-4 rounded-2xl bg-linear-to-r from-lemon-400 to-lemon-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 hover:brightness-105 active:scale-95 transition shadow-lg shadow-lemon-400/30"
           >
             <span>Nästa fråga</span>

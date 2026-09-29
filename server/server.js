@@ -39,11 +39,20 @@ const gameState = {
   phase: 'LOBBY', // 'LOBBY' | 'ANSWERING' | 'REVEALING' | 'LEADERBOARD'
   players: {},
   currentRevealQuestionIndex: 0,
+  isAnswerRevealed: false,
+  isGuessesRevealed: false,
   startedAt: null,
 };
 
 function broadcastState() {
   io.emit('game-state', gameState);
+}
+
+function goToQuestion(index) {
+  gameState.currentRevealQuestionIndex = index;
+  gameState.isAnswerRevealed = false;
+  gameState.isGuessesRevealed = false;
+  broadcastState();
 }
 
 // Bot generators for solo testing / party fun
@@ -139,29 +148,36 @@ io.on('connection', (socket) => {
   // Admin controls
   socket.on('admin-start-reveal', () => {
     gameState.phase = 'REVEALING';
-    gameState.currentRevealQuestionIndex = 0;
-    broadcastState();
+    goToQuestion(0);
   });
 
   socket.on('admin-next-question', () => {
     if (gameState.currentRevealQuestionIndex < QUESTIONS.length - 1) {
-      gameState.currentRevealQuestionIndex++;
-      broadcastState();
+      goToQuestion(gameState.currentRevealQuestionIndex + 1);
     }
   });
 
   socket.on('admin-prev-question', () => {
     if (gameState.currentRevealQuestionIndex > 0) {
-      gameState.currentRevealQuestionIndex--;
-      broadcastState();
+      goToQuestion(gameState.currentRevealQuestionIndex - 1);
     }
   });
 
   socket.on('admin-jump-question', ({ index }) => {
     if (index >= 0 && index < QUESTIONS.length) {
-      gameState.currentRevealQuestionIndex = index;
-      broadcastState();
+      goToQuestion(index);
     }
+  });
+
+  socket.on('admin-reveal-answer', () => {
+    gameState.isAnswerRevealed = true;
+    broadcastState();
+  });
+
+  socket.on('admin-reveal-guesses', () => {
+    gameState.isAnswerRevealed = true;
+    gameState.isGuessesRevealed = true;
+    broadcastState();
   });
 
   socket.on('admin-finish-quiz', () => {
@@ -186,6 +202,8 @@ io.on('connection', (socket) => {
   socket.on('admin-reset-game', () => {
     gameState.phase = 'LOBBY';
     gameState.currentRevealQuestionIndex = 0;
+    gameState.isAnswerRevealed = false;
+    gameState.isGuessesRevealed = false;
     Object.keys(gameState.players).forEach((id) => {
       gameState.players[id].answers = {};
       gameState.players[id].isSubmitted = false;
