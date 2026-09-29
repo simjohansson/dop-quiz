@@ -28,5 +28,8 @@ yarn-error.log*
 
 # Test artifacts
 test_grid_*
+
+# Persisted game state
+server/game-state.json*
 test_pyssling_*
 

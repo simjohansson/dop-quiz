@@ -35,6 +35,7 @@ export type GamePhase =
 
 export interface GameState {
   roomId: string;
+  roundId?: string;                   // Changes on every reset so clients can drop stale local answers
   phase: GamePhase;
   players: Record<string, Player>;
   currentRevealQuestionIndex: number; // 0 to questions.length - 1

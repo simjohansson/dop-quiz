@@ -71,6 +71,16 @@ export const App: React.FC = () => {
     });
 
     s.on('game-state', (state: GameState) => {
+      if (state.roundId) {
+        const knownRound = localStorage.getItem('lemon_quiz_round');
+        if (knownRound && knownRound !== state.roundId) {
+          localStorage.removeItem('lemon_quiz_answers');
+          localStorage.removeItem('lemon_quiz_submitted');
+          setAnswers({});
+          setIsSubmittedLocally(false);
+        }
+        localStorage.setItem('lemon_quiz_round', state.roundId);
+      }
       setGameState(state);
     });
 

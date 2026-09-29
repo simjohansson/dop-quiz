@@ -51,11 +51,19 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
       avgGuess,
       maxSingleDiff,
       breakdown,
+      rank: 0,
     };
   });
 
-  // Sort ascending: LOWEST diff is winner! (0 is perfect)
-  playerResults.sort((a, b) => a.totalDiff - b.totalDiff);
+  // Lowest diff wins; exact hits break ties, otherwise the place is shared.
+  playerResults.sort((a, b) => a.totalDiff - b.totalDiff || b.exactHits - a.exactHits);
+  playerResults.forEach((r, i) => {
+    const prev = playerResults[i - 1];
+    r.rank =
+      prev && prev.totalDiff === r.totalDiff && prev.exactHits === r.exactHits ? prev.rank : i + 1;
+  });
+  const isSharedRank = (rank: number) => playerResults.filter((r) => r.rank === rank).length > 1;
+  const rankEmoji = (rank: number) => (rank === 1 ? '👑' : rank === 2 ? '🥈' : '🥉');
 
   // Trigger grand victory confetti!
   useEffect(() => {
@@ -117,7 +125,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
           {/* 2nd Place */}
           {secondPlace && (
             <div className="flex-1 flex flex-col items-center">
-              <div className="text-2xl mb-1">🥈</div>
+              <div className="text-2xl mb-1">{rankEmoji(secondPlace.rank)}</div>
               <span className="text-xs font-extrabold text-slate-800 truncate max-w-[90px] text-center">
                 {secondPlace.player.name}
               </span>
@@ -125,7 +133,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                 +{secondPlace.totalDiff} p
               </span>
               <div className="w-full h-24 mt-2 rounded-t-2xl bg-linear-to-t from-slate-200 to-slate-100 border-t-2 border-slate-400 flex items-center justify-center shadow-xs">
-                <span className="text-2xl font-black text-slate-500">2</span>
+                <span className="text-2xl font-black text-slate-500">{secondPlace.rank}</span>
               </div>
             </div>
           )}
@@ -150,7 +158,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
           {/* 3rd Place */}
           {thirdPlace && (
             <div className="flex-1 flex flex-col items-center">
-              <div className="text-2xl mb-1">🥉</div>
+              <div className="text-2xl mb-1">{rankEmoji(thirdPlace.rank)}</div>
               <span className="text-xs font-extrabold text-slate-800 truncate max-w-[90px] text-center">
                 {thirdPlace.player.name}
               </span>
@@ -158,7 +166,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                 +{thirdPlace.totalDiff} p
               </span>
               <div className="w-full h-18 mt-2 rounded-t-2xl bg-linear-to-t from-amber-100 to-amber-50 border-t-2 border-amber-500 flex items-center justify-center shadow-xs">
-                <span className="text-xl font-black text-amber-700">3</span>
+                <span className="text-xl font-black text-amber-700">{thirdPlace.rank}</span>
               </div>
             </div>
           )}
@@ -173,9 +181,9 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
         </h3>
 
         <div className="space-y-2">
-          {playerResults.map((item, idx) => {
+          {playerResults.map((item) => {
             const isExpanded = expandedPlayerId === item.player.id;
-            const rank = idx + 1;
+            const rank = item.rank;
 
             return (
               <div
@@ -206,6 +214,11 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                       <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                         <span>{item.player.name}</span>
                         {rank === 1 && <span>🍋</span>}
+                        {isSharedRank(rank) && (
+                          <span className="px-1.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[9px] font-black uppercase text-slate-500">
+                            Delad plats
+                          </span>
+                        )}
                       </h4>
                       <p className="text-[11px] text-slate-500">
                         {item.exactHits > 0

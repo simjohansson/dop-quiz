@@ -1,5 +1,6 @@
 import express from 'express';
 import http from 'http';
+import fs from 'fs';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import path from 'path';
@@ -34,19 +35,50 @@ const QUESTIONS = [
   { id: 9, answer: 10 },
 ];
 
-// In-Memory Game State
+const STATE_FILE = process.env.STATE_FILE || path.join(__dirname, 'game-state.json');
+
+function loadSavedState() {
+  try {
+    return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+const newRoundId = () => Date.now().toString(36);
+
 const gameState = {
   phase: 'LOBBY', // 'LOBBY' | 'ANSWERING' | 'REVEALING' | 'LEADERBOARD'
+  roundId: newRoundId(),
   players: {},
   currentRevealQuestionIndex: 0,
   isAnswerRevealed: false,
   isGuessesRevealed: false,
   startedAt: null,
+  ...loadSavedState(),
 };
+
+// Debounced + atomic (tmp file + rename) so slider spam doesn't hammer the disk or corrupt the file.
+let saveTimer = null;
+function saveState() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    const tmp = `${STATE_FILE}.tmp`;
+    try {
+      await fs.promises.writeFile(tmp, JSON.stringify(gameState));
+      await fs.promises.rename(tmp, STATE_FILE);
+    } catch (err) {
+      console.error('Kunde inte spara spelläget:', err);
+    }
+  }, 300);
+}
 
 function broadcastState() {
   io.emit('game-state', gameState);
+  saveState();
 }
+
+const canAnswer = () => gameState.phase === 'LOBBY' || gameState.phase === 'ANSWERING';
 
 function goToQuestion(index) {
   gameState.currentRevealQuestionIndex = index;
@@ -128,7 +160,7 @@ io.on('connection', (socket) => {
 
   // Player updates answer
   socket.on('submit-answer', ({ playerId, questionId, value }) => {
-    if (gameState.players[playerId]) {
+    if (canAnswer() && gameState.players[playerId]) {
       gameState.players[playerId].answers[questionId] = Math.max(
         0,
         Math.min(100, Math.round(value))
@@ -139,7 +171,7 @@ io.on('connection', (socket) => {
 
   // Player finishes wizard
   socket.on('submit-all-answers', ({ playerId }) => {
-    if (gameState.players[playerId]) {
+    if (canAnswer() && gameState.players[playerId]) {
       gameState.players[playerId].isSubmitted = true;
       broadcastState();
     }
@@ -201,6 +233,7 @@ io.on('connection', (socket) => {
 
   socket.on('admin-reset-game', () => {
     gameState.phase = 'LOBBY';
+    gameState.roundId = newRoundId();
     gameState.currentRevealQuestionIndex = 0;
     gameState.isAnswerRevealed = false;
     gameState.isGuessesRevealed = false;
