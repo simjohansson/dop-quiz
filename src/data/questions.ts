@@ -85,7 +85,7 @@ export const QUESTIONS: Question[] = [
     id: 9,
     title: "Den allra första Majblomman 🪙",
     category: "Svensk historia",
-    question: "År 1907 lanserade Beda Hallberg Majblomman i Göteborg för att bekämpa tuberkulos. Hur många öre kostade den allra första Majblomman per styck?",
+    question: "Nils föddes ju i maj, och på tal om maj: år 1907 lanserade Beda Hallberg Majblomman i Göteborg för att bekämpa tuberkulos. Hur många öre kostade den allra första Majblomman per styck?",
     answer: 10,
     unit: "öre",
     explanation: "Den första Majblomman kostade bara 10 öre år 1907. Hela 139 000 majblommor såldes i Göteborg under premiäråret!",

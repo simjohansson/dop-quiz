@@ -70,4 +70,4 @@ Detta ger en publik `https://*.trycloudflare.com`-länk. Öppna länken på din 
 6. **Flottans långa betänketid 🍋⚓**: År 1747 bevisade James Lind att citrus botar skörbjugg, men Royal Navy gjorde inte citronsaft obligatorisk förrän 1795. Hur många år dröjde det? (*Svar: 48*)
 7. **Världens tyngsta citron ⚖️**: Hur många kilo vägde världens tyngsta citron i Guinness Rekordbok (avrundat till närmaste heltal)? (*Svar: 5*)
 8. **Arne Weises jular 🕯️📺**: Under hur många julaftnar tände Arne Weise ljuset som julvärd i SVT? (*Svar: 24*)
-9. **Den allra första Majblomman 🪙**: Hur många öre kostade den allra första blå Majblomman per styck år 1907? (*Svar: 10*)
+9. **Den allra första Majblomman 🪙**: Nils föddes ju i maj, och på tal om maj: hur många öre kostade den allra första Majblomman per styck år 1907? (*Svar: 10*)
