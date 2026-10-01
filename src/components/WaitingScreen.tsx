@@ -65,7 +65,7 @@ export const WaitingScreen: React.FC<WaitingScreenProps> = ({
       <div className="my-4 bg-white rounded-3xl p-4 border-2 border-amber-200 shadow-lemon-soft">
         <div className="flex items-center justify-between mb-3 px-1">
           <h4 className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
-            <span>Dina 9 citrongissningar</span>
+            <span>Dina {questions.length} citrongissningar</span>
           </h4>
           {onEditAnswers && (
             <button

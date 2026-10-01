@@ -438,7 +438,7 @@ export const App: React.FC = () => {
             juice={gameState.juice}
           />
         ) : (
-          /* Step 2a: Answering in 1-9 Wizard */
+          /* Step 2a: Answering in Wizard */
           <Wizard
             questions={QUESTIONS}
             playerName={playerName}

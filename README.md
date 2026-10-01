@@ -9,11 +9,11 @@ Ett modernt, zestigt och mobil-optimerat **0–100 frågesportspel** i citrontem
 - 🍋 **Citrontema & Levande SVG-Animation**: En söt, levande citronfigur som mognar, ändrar ansiktsuttryck (från sur lime vid 0 till gyllene supercitron med krona vid 100), sprutar saftdroppar och pulserar i takt med att slidern rör sig.
 - 📱 **Mobile-first Wizard**:
   - En fråga per sida med responsiv touch-layout.
-  - Horisontell snabbvalsrad (1–9) för att hoppa fram och tillbaka mellan frågorna.
+  - Horisontell snabbvalsrad (1–12) för att hoppa fram och tillbaka mellan frågorna.
   - Touch-slider med finjusteringsknappar (`-10`, `-1`, `+1`, `+10`) samt möjlighet att klicka direkt på siffran och knappa in exakt tal.
 - ⏳ **Vänteläge**:
   - När spelaren granskat och lämnat in sina svar visas en animerad citronpress som pressar lemonad medan man väntar på spelledaren.
-  - Visar en sammanfattning av spelarens 9 gissningar så man har något kul att prata om vid bordet.
+  - Visar en sammanfattning av spelarens 12 gissningar så man har något kul att prata om vid bordet.
 - 👑 **Spelledarpanel (Admin)**:
   - Live-översikt över anslutna spelare och hur många som är klara.
   - QR-kod som gäster kan scanna med mobilkameran för att öppna spelet direkt.

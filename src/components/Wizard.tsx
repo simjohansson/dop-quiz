@@ -57,12 +57,12 @@ export const Wizard: React.FC<WizardProps> = ({
             className="flex items-center gap-1.5 text-xs font-black text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-3 py-1.5 rounded-2xl shadow-xs transition"
           >
             <Citrus className="w-3.5 h-3.5 text-amber-700" />
-            <span>{answeredCount}/9 besvarade</span>
+            <span>{answeredCount}/{questions.length} besvarade</span>
           </button>
         </div>
 
-        {/* 1-9 Fast Jump Bar */}
-        <div className="grid grid-cols-9 gap-1 sm:gap-1.5 p-1.5 bg-white border border-amber-200 rounded-2xl shadow-xs">
+        {/* Fast Jump Bar */}
+        <div className="grid grid-cols-6 sm:grid-cols-12 gap-1 sm:gap-1.5 p-1.5 bg-white border border-amber-200 rounded-2xl shadow-xs">
           {questions.map((q, idx) => {
             const isAnswered = answers[q.id] !== undefined;
             const isCurrent = idx === currentIndex;

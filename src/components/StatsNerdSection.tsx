@@ -250,7 +250,7 @@ export const StatsNerdSection: React.FC<StatsNerdSectionProps> = ({ players, que
             title="Gissningsfördelning per fråga"
             subtitle="Hur spridda var gissningarna? Gul linje = facit, streckad = median."
           >
-            <div className="grid grid-cols-9 gap-1 mb-3">
+            <div className="grid grid-cols-6 sm:grid-cols-12 gap-1 mb-3">
               {stats.perQuestion.map((pq, idx) => (
                 <button
                   key={pq.label}
