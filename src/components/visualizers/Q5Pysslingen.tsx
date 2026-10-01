@@ -3,23 +3,7 @@ import { VisualizerProps } from './types';
 
 export const Q5Pysslingen: React.FC<VisualizerProps> = ({ value }) => {
   const floorY = 142;
-
-  // Scaling calculations for Nils Karlsson Pyssling
-  // At value = 1: Full life-size 52px (scale 1.0)
-  // At value > 1: Smoothly scales down, clamped at 0.64 (~33px) so he is always visible and crisp!
-  let nilsScale = 1.0;
-  let thumbH = 52.0;
-
-  if (value === 0 || value === 1) {
-    nilsScale = 1.0;
-    thumbH = 52.0;
-  } else if (value <= 10) {
-    nilsScale = 0.92 - (value - 2) * (0.14 / 8.0);
-    thumbH = 26.0 - (value - 2) * (15.8 / 8.0);
-  } else {
-    nilsScale = Math.max(0.64, 0.78 - (value - 10) * (0.16 / 90.0));
-    thumbH = 10.2;
-  }
+  const nilsScale = 1.0;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[195px] select-none">
@@ -101,32 +85,13 @@ export const Q5Pysslingen: React.FC<VisualizerProps> = ({ value }) => {
             <rect x="-9.5" y="-16" width="19" height="3.8" rx="1" fill="#78350f" />
             <rect x="-3" y="-16.5" width="6" height="4.8" rx="1" fill="#facc15" stroke="#ca8a04" strokeWidth="0.8" />
 
-            {/* Arms & Pose */}
-            {value === 0 ? (
-              /* Puzzled posture (hands at sides, wondering where the thumbs are) */
-              <g>
-                <path d="M -8 -25 Q -14 -22 -14 -16" fill="none" stroke="#15803d" strokeWidth="3" strokeLinecap="round" />
-                <path d="M 8 -25 Q 14 -22 14 -16" fill="none" stroke="#15803d" strokeWidth="3" strokeLinecap="round" />
-                <circle cx="-14" cy="-15" r="2" fill="#fed7aa" />
-                <circle cx="14" cy="-15" r="2" fill="#fed7aa" />
-              </g>
-            ) : value === 1 ? (
-              /* Proud, confident pose (hands on hips matching 1:1) */
-              <g>
-                <path d="M -8 -25 Q -14 -18 -9 -14" fill="none" stroke="#15803d" strokeWidth="3" strokeLinecap="round" />
-                <path d="M 8 -25 Q 14 -18 9 -14" fill="none" stroke="#15803d" strokeWidth="3" strokeLinecap="round" />
-                <circle cx="-8" cy="-13" r="2" fill="#fed7aa" />
-                <circle cx="8" cy="-13" r="2" fill="#fed7aa" />
-              </g>
-            ) : (
-              /* Looking up in awe and pointing at the mountain of thumbs! */
-              <g>
-                <path d="M -8 -25 Q -13 -18 -8 -13" fill="none" stroke="#15803d" strokeWidth="3" strokeLinecap="round" />
-                <path d="M 8 -25 Q 15 -28 17 -34" fill="none" stroke="#15803d" strokeWidth="3" strokeLinecap="round" />
-                <circle cx="-8" cy="-12" r="2" fill="#fed7aa" />
-                <circle cx="18" cy="-35" r="2" fill="#fed7aa" />
-              </g>
-            )}
+            {/* Arms & Pose: Cheerful, confident stance with hands on hips */}
+            <g>
+              <path d="M -8 -25 Q -14 -18 -9 -14" fill="none" stroke="#15803d" strokeWidth="3" strokeLinecap="round" />
+              <path d="M 8 -25 Q 14 -18 9 -14" fill="none" stroke="#15803d" strokeWidth="3" strokeLinecap="round" />
+              <circle cx="-8" cy="-13" r="2" fill="#fed7aa" />
+              <circle cx="8" cy="-13" r="2" fill="#fed7aa" />
+            </g>
 
             {/* Crisp White Shirt Collar */}
             <polygon points="-5,-27 0,-23 5,-27" fill="#ffffff" />
@@ -150,73 +115,10 @@ export const Q5Pysslingen: React.FC<VisualizerProps> = ({ value }) => {
           </g>
         </g>
 
-        {/* 7. DYNAMIC THUMBS VISUALIZATION */}
-        {value === 0 ? (
-          /* 0 Thumbs: Puzzled empty space with question mark */
-          <g transform="translate(130, 95)">
-            <circle cx="0" cy="0" r="14" fill="#fef3c7" stroke="#f59e0b" strokeWidth="1" opacity="0.6" strokeDasharray="3 2" />
-            <text x="0" y="5" textAnchor="middle" fill="#d97706" fontSize="14" fontWeight="bold">?</text>
-          </g>
-        ) : value === 1 ? (
-          /* 1 Thumb: EXACT 1:1 TRUE MATCH WITH NILS! */
-          <g>
-            <g transform={`translate(125, ${floorY})`}>
-              <path
-                d="M -13 0 C -15 -18, -13 -36, -9 -44 C -7 -50, -5 -52, 0 -52 C 5 -52, 7 -50, 9 -44 C 13 -36, 15 -18, 13 0 Z"
-                fill="url(#thumbGradQ5)"
-                stroke="#d97706"
-                strokeWidth="1.8"
-              />
-              <path
-                d="M -6 -48 C -6 -51, 6 -51, 6 -48 L 5 -38 C 5 -37, -5 -37, -5 -38 Z"
-                fill="#ffffff"
-                opacity="0.85"
-                stroke="#f59e0b"
-                strokeWidth="0.8"
-              />
-              <path d="M -7 -22 Q 0 -24 7 -22" stroke="#d97706" strokeWidth="1.2" fill="none" opacity="0.5" strokeLinecap="round" />
-              <path d="M -8 -18 Q 0 -20 8 -18" stroke="#d97706" strokeWidth="1.2" fill="none" opacity="0.5" strokeLinecap="round" />
-              <text x="0" y="-56" textAnchor="middle" fill="#b45309" fontSize="8" fontWeight="bold">
-                1 TUMME
-              </text>
-            </g>
-            {/* 1:1 Level Comparison Line */}
-            <line x1="68" y1="90" x2="125" y2="90" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="3 2" />
-            <rect x="76" y="82" width="44" height="15" rx="4" fill="#fef3c7" stroke="#f59e0b" strokeWidth="0.9" />
-            <text x="98" y="92.5" textAnchor="middle" fill="#92400e" fontSize="6.5" fontWeight="bold">
-              LIKA HÖGA!
-            </text>
-          </g>
-        ) : value <= 10 ? (
-          /* 2 to 10 Thumbs: Single vertical tower right in front of Nils */
-          <g>
-            {[...Array(value)].map((_, r) => {
-              const cy = floorY - r * thumbH;
-              const thRatio = thumbH / 10.2;
-              const w = 5.0 * Math.min(2.2, Math.max(1.0, Math.sqrt(thRatio)));
-              const nailW = 2.5 * Math.min(2.0, Math.max(1.0, Math.sqrt(thRatio)));
-              return (
-                <g key={r} transform={`translate(105, ${cy})`}>
-                  <path
-                    d={`M ${-w} 0 C ${-w - 0.5} ${-thumbH * 0.4}, ${-w * 0.8} ${-thumbH * 0.85}, 0 ${-thumbH} C ${w * 0.8} ${-thumbH * 0.85}, ${w + 0.5} ${-thumbH * 0.4}, ${w} 0 Z`}
-                    fill="url(#thumbGradQ5)"
-                    stroke="#d97706"
-                    strokeWidth="0.9"
-                  />
-                  <path
-                    d={`M ${-nailW} ${-thumbH * 0.92} C ${-nailW} ${-thumbH}, ${nailW} ${-thumbH}, ${nailW} ${-thumbH * 0.92} L ${nailW * 0.8} ${-thumbH * 0.65} L ${-nailW * 0.8} ${-thumbH * 0.65} Z`}
-                    fill="#ffffff"
-                    opacity="0.85"
-                  />
-                  <line x1={-nailW} y1={-thumbH * 0.35} x2={nailW} y2={-thumbH * 0.35} stroke="#d97706" strokeWidth="0.7" opacity="0.5" />
-                </g>
-              );
-            })}
-          </g>
-        ) : (
-          /* 11 to 100 Thumbs: Neatly stacked columns of 10 thumbs up to 100! */
-          <g>
-            {[...Array(value)].map((_, i) => {
+        {/* 7. DYNAMIC THUMBS VISUALIZATION (Columns of 10 thumbs up to 100) */}
+        {value > 0 && (
+          <g id="thumbs_grid">
+            {[...Array(Math.min(100, Math.max(0, value)))].map((_, i) => {
               const col = Math.floor(i / 10);
               const row = i % 10;
               const cx = 105 + col * 13.5;
@@ -240,6 +142,14 @@ export const Q5Pysslingen: React.FC<VisualizerProps> = ({ value }) => {
             })}
           </g>
         )}
+
+        {/* 8. TOP BROADCAST PLAQUE */}
+        <g transform="translate(125, 8)">
+          <rect x="-65" y="-6.5" width="130" height="13" rx="4" fill="#0f172a" stroke="#ca8a04" strokeWidth="1.1" />
+          <text x="0" y="2.6" textAnchor="middle" fill="#fde047" fontSize="6.6" fontWeight="900" fontFamily="'Space Grotesk', sans-serif" letterSpacing="0.8">
+            NILS LÄNGD • {value} {value === 1 ? 'TUMME' : 'TUMMAR'} 🧝‍♂️
+          </text>
+        </g>
       </svg>
     </div>
   );
