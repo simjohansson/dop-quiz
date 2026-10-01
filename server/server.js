@@ -28,11 +28,14 @@ const QUESTIONS = [
   { id: 2, answer: 14 },
   { id: 3, answer: 25 },
   { id: 4, answer: 19 },
-  { id: 5, answer: 1 },
-  { id: 6, answer: 48 },
-  { id: 7, answer: 5 },
-  { id: 8, answer: 24 },
-  { id: 9, answer: 10 },
+  { id: 5, answer: 89 },
+  { id: 6, answer: 1 },
+  { id: 7, answer: 48 },
+  { id: 8, answer: 92 },
+  { id: 9, answer: 5 },
+  { id: 10, answer: 24 },
+  { id: 11, answer: 95 },
+  { id: 12, answer: 10 },
 ];
 
 const STATE_FILE = process.env.STATE_FILE || path.join(__dirname, 'game-state.json');

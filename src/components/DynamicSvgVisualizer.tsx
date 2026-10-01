@@ -4,10 +4,13 @@ import {
   Q2Litteraturen,
   Q3NilsPaIsen,
   Q4Citroen,
+  QCitronVatten,
   Q5Pysslingen,
   Q6Flottan,
+  QTjugolappen,
   Q7TyngstaCitronen,
   Q8ArneWeise,
+  QLemonTree,
   Q9Majblomman,
 } from './visualizers';
 
@@ -21,7 +24,7 @@ export const DynamicSvgVisualizer: React.FC<DynamicSvgVisualizerProps> = ({
   value,
   questionId,
 }) => {
-  // Render specific animated SVG scene for each question
+  // Render specific animated SVG scene for each question (1 to 12)
   const renderScene = () => {
     switch (questionId) {
       case 1:
@@ -33,14 +36,20 @@ export const DynamicSvgVisualizer: React.FC<DynamicSvgVisualizerProps> = ({
       case 4:
         return <Q4Citroen value={value} />;
       case 5:
-        return <Q5Pysslingen value={value} />;
+        return <QCitronVatten value={value} />;
       case 6:
-        return <Q6Flottan value={value} />;
+        return <Q5Pysslingen value={value} />;
       case 7:
-        return <Q7TyngstaCitronen value={value} />;
+        return <Q6Flottan value={value} />;
       case 8:
-        return <Q8ArneWeise value={value} />;
+        return <QTjugolappen value={value} />;
       case 9:
+        return <Q7TyngstaCitronen value={value} />;
+      case 10:
+        return <Q8ArneWeise value={value} />;
+      case 11:
+        return <QLemonTree value={value} />;
+      case 12:
         return <Q9Majblomman value={value} />;
       default:
         return null;
