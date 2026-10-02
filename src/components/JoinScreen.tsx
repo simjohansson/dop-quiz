@@ -40,7 +40,7 @@ export const JoinScreen: React.FC<JoinScreenProps> = ({ onJoin }) => {
             Citron-Quizet
           </h1>
           <p className="text-sm text-slate-600 mt-1.5 max-w-xs leading-relaxed font-medium">
-            Gissa mellan 0 och 100 på 12 kluriga frågor. Den med lägst avvikelse tar hem Den Gyllene Citronen!
+            Gissa mellan 0 och 100 på 12 kluriga frågor. Lägst poäng vinner – och en spik (exakt rätt) ger -10 poäng i bonus!
           </p>
         </div>
 

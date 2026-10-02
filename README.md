@@ -24,7 +24,7 @@ Ett modernt, zestigt och mobil-optimerat **0–100 frågesportspel** i citrontem
   - Visar vem som var närmast ("Bullseye"), gruppens medelvärde och chansaren.
 - 🏆 **Topplista & Prispall**:
   - Prispall (1:a, 2:a, 3:e plats) för "Den Gyllene Citronen".
-  - Poäng beräknas som avvikelse från facit (0 poäng är perfekt alla rätt – lägst vinner!).
+  - Poäng beräknas som avvikelse från facit, och en spik (exakt rätt) belönas med -10 poäng i bonus (lägst totalpoäng vinner!).
   - Roliga utmärkelser: *Prickskytten*, *Överoptimisten*, *Försiktige generalen* och *Största chansningen*.
 
 ---

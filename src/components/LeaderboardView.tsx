@@ -39,15 +39,19 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
     const breakdown = questions.map((q) => {
       const guess = guessOf(player, q);
       const diff = Math.abs(guess - q.answer);
-      totalDiff += diff;
+      const isExact = diff === 0;
+      const points = isExact ? -10 : diff;
+      totalDiff += points;
       sumGuesses += guess;
-      if (diff === 0) exactHits++;
+      if (isExact) exactHits++;
       if (diff > maxSingleDiff) maxSingleDiff = diff;
 
       return {
         question: q,
         guess,
         diff,
+        isExact,
+        points,
       };
     });
 
@@ -122,7 +126,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
           Den Gyllene Citronen 🍋
         </h1>
         <p className="text-xs md:text-sm text-slate-600 mt-1 font-medium">
-          Minst antal poäng från max (0 poäng är alla rätt – lägst vinner!)
+          Lägst poäng vinner • Spik (exakt rätt) ger -10 poäng i bonus! 🎯
         </p>
       </div>
 
@@ -137,7 +141,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                 {secondPlace.player.name}
               </span>
               <span className="text-xs font-black text-slate-700 font-mono mt-0.5">
-                +{secondPlace.totalDiff} p
+                {secondPlace.totalDiff > 0 ? `+${secondPlace.totalDiff}` : secondPlace.totalDiff} p
               </span>
               <div className="w-full h-24 mt-2 rounded-t-2xl bg-linear-to-t from-slate-200 to-slate-100 border-t-2 border-slate-400 flex items-center justify-center shadow-xs">
                 <span className="text-2xl font-black text-slate-500">{secondPlace.rank}</span>
@@ -153,7 +157,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                 {firstPlace.player.name}
               </span>
               <span className="text-sm font-black text-amber-900 font-mono mt-0.5 px-2.5 py-0.5 rounded-full bg-lemon-200 border border-lemon-400 shadow-xs">
-                +{firstPlace.totalDiff} p
+                {firstPlace.totalDiff > 0 ? `+${firstPlace.totalDiff}` : firstPlace.totalDiff} p
               </span>
               <div className="w-full h-32 mt-2 rounded-t-2xl bg-linear-to-t from-lemon-200 via-lemon-100 to-white border-t-4 border-lemon-500 flex flex-col items-center justify-center shadow-lemon-soft">
                 <Trophy className="w-7 h-7 text-lemon-600 fill-lemon-500 mb-1" />
@@ -170,7 +174,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                 {thirdPlace.player.name}
               </span>
               <span className="text-xs font-black text-amber-800 font-mono mt-0.5">
-                +{thirdPlace.totalDiff} p
+                {thirdPlace.totalDiff > 0 ? `+${thirdPlace.totalDiff}` : thirdPlace.totalDiff} p
               </span>
               <div className="w-full h-18 mt-2 rounded-t-2xl bg-linear-to-t from-amber-100 to-amber-50 border-t-2 border-amber-500 flex items-center justify-center shadow-xs">
                 <span className="text-xl font-black text-amber-700">{thirdPlace.rank}</span>
@@ -229,7 +233,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                       </h4>
                       <p className="text-[11px] text-slate-500">
                         {item.exactHits > 0
-                          ? `${item.exactHits} st mitt i prick!`
+                          ? `${item.exactHits} st mitt i prick (-${item.exactHits * 10} p)!`
                           : `Snittgissning: ${item.avgGuess}`}
                       </p>
                     </div>
@@ -238,10 +242,10 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                   <div className="flex items-center gap-3">
                     <div className="text-right">
                       <div className="text-base font-black text-slate-900 font-['Space_Grotesk']">
-                        +{item.totalDiff}
+                        {item.totalDiff > 0 ? `+${item.totalDiff}` : item.totalDiff}
                       </div>
                       <div className="text-[10px] text-amber-700 font-bold">
-                        poäng från facit
+                        totalpoäng
                       </div>
                     </div>
                     {isExpanded ? (
@@ -271,14 +275,14 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                           <span className="text-slate-500">Facit: {b.question.answer}</span>
                           <span
                             className={`font-bold ${
-                              b.diff === 0
-                                ? 'text-amber-600'
+                              b.isExact
+                                ? 'text-amber-600 font-black'
                                 : b.diff <= 5
                                 ? 'text-lime-700'
                                 : 'text-orange-700'
                             }`}
                           >
-                            {b.diff === 0 ? '🎯 0' : `±${b.diff}`}
+                            {b.isExact ? '🎯 -10 p' : `+${b.diff} p`}
                           </span>
                         </div>
                       </div>

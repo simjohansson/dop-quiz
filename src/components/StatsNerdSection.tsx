@@ -61,7 +61,12 @@ const pearson = (xs: number[], ys: number[]) => {
   return dx && dy ? num / Math.sqrt(dx * dy) : null;
 };
 const scoreOf = (guesses: number[], questions: Question[]) =>
-  sum(questions.map((q, i) => Math.abs(guesses[i] - q.answer)));
+  sum(
+    questions.map((q, i) => {
+      const diff = Math.abs(guesses[i] - q.answer);
+      return diff === 0 ? -10 : diff;
+    })
+  );
 
 const ChartCard: React.FC<{ emoji: string; title: string; subtitle: string; children: React.ReactNode }> = ({
   emoji,
@@ -119,10 +124,14 @@ export const StatsNerdSection: React.FC<StatsNerdSectionProps> = ({ players, que
       };
     });
 
+    const minScore = Math.min(...scores, 0);
     const maxScore = Math.max(...scores, 0);
-    const binWidth = Math.max(5, Math.ceil(maxScore / 8 / 5) * 5);
-    const scoreBins = Array.from({ length: Math.floor(maxScore / binWidth) + 1 }, (_, i) => {
-      const from = i * binWidth;
+    const span = Math.max(1, maxScore - minScore);
+    const binWidth = Math.max(5, Math.ceil(span / 8 / 5) * 5);
+    const minBin = Math.floor(minScore / binWidth) * binWidth;
+    const numBins = Math.max(1, Math.floor((maxScore - minBin) / binWidth) + 1);
+    const scoreBins = Array.from({ length: numBins }, (_, i) => {
+      const from = minBin + i * binWidth;
       const to = from + binWidth - 1;
       const names = players.filter((_, pi) => scores[pi] >= from && scores[pi] <= to).map((p) => p.name);
       return { range: `${from}–${to}`, count: names.length, names: names.join(', ') };
@@ -136,7 +145,7 @@ export const StatsNerdSection: React.FC<StatsNerdSectionProps> = ({ players, que
       { name: 'Gruppens median', score: crowdMedianScore },
       { name: 'Gruppens snitt', score: crowdMeanScore },
       { name: 'Snittspelaren', score: r1(mean(scores)) },
-      { name: 'Sämsta spelaren', score: maxScore },
+      { name: 'Sämsta spelaren', score: Math.max(...scores) },
     ];
 
     const digitCounts = Array<number>(10).fill(0);

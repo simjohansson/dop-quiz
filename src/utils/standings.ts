@@ -13,15 +13,26 @@ export const guessOf = (player: Player, question: Question) => player.answers[qu
 export const isParticipant = (player: Player) =>
   player.isSubmitted || Object.keys(player.answers).length > 0;
 
+// Score for a single question guess: diff from answer, but exact hit gives -10 points!
+export const questionScore = (guess: number, answer: number): number => {
+  const diff = Math.abs(guess - answer);
+  return diff === 0 ? -10 : diff;
+};
+
 // Lowest total wins; exact hits break ties, otherwise the rank is shared.
 export function computeStandings(players: Player[], questions: Question[]): Standing[] {
   const standings = players.map((player) => {
     let total = 0;
     let exactHits = 0;
     questions.forEach((q) => {
-      const diff = Math.abs(guessOf(player, q) - q.answer);
-      total += diff;
-      if (diff === 0) exactHits++;
+      const guess = guessOf(player, q);
+      const diff = Math.abs(guess - q.answer);
+      if (diff === 0) {
+        exactHits++;
+        total -= 10;
+      } else {
+        total += diff;
+      }
     });
     return { player, total, exactHits, rank: 0 };
   });

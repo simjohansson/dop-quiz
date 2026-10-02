@@ -112,7 +112,7 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
   const myVerdict = !mine
     ? ''
     : mine.diff === 0
-      ? '🎯 Mitt i prick!'
+      ? '🎯 Mitt i prick! (-10 p)'
       : mine.diff <= 3
         ? '🔥 Riktigt nära!'
         : mine.diff <= 10
@@ -209,7 +209,10 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
                   </div>
                   <div className="text-right font-mono">
                     <p className="text-lg font-black text-slate-900 leading-tight">
-                      {mine.guess} <span className="text-xs text-slate-500">(±{mine.diff})</span>
+                      {mine.guess}{' '}
+                      <span className="text-xs text-slate-500">
+                        {mine.diff === 0 ? '(🎯 -10 p bonus!)' : `(±${mine.diff})`}
+                      </span>
                     </p>
                     <p className="text-[10px] font-bold text-slate-600">
                       plats {myPlaceOnQuestion} av {playerGuesses.length} på frågan
@@ -293,7 +296,9 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
                                   ? 'bg-lime-200 text-lime-950 font-black border border-lime-500'
                                   : 'bg-white text-slate-800 border border-slate-300'
                               }`}
-                              title={`${item.player.name}: gissade ${item.guess} (diff ${item.diff})`}
+                              title={`${item.player.name}: gissade ${item.guess} (${
+                                isExact ? 'EXAKT! 🎯 -10 poäng' : `diff +${item.diff} p`
+                              })`}
                             >
                               <span>{isExact ? '🎯' : isClosest ? '⭐' : '🍋'}</span>
                               <span className="max-w-[70px] truncate">{item.player.name}</span>
@@ -337,7 +342,7 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
                         {closest.map((c) => c.player.name).join(', ')}
                       </p>
                       <span className="text-[11px] font-bold text-lime-700">
-                        {closest[0]?.diff === 0 ? '🎯 Spik (0 diff!)' : `Diff: ±${closest[0]?.diff}`}
+                        {closest[0]?.diff === 0 ? '🎯 Spik (-10 p bonus!)' : `Diff: ±${closest[0]?.diff}`}
                       </span>
                     </div>
 
@@ -376,7 +381,7 @@ export const RevealQuestionView: React.FC<RevealQuestionViewProps> = ({
                       📉 För lågt: <strong className="text-lime-700">{lowerCount}</strong>
                     </span>
                     <span>
-                      🎯 Mitt i prick: <strong className="text-amber-700">{exactCount}</strong>
+                      🎯 Mitt i prick (-10 p): <strong className="text-amber-700">{exactCount}</strong>
                     </span>
                     <span>
                       📈 För högt: <strong className="text-orange-700">{higherCount}</strong>

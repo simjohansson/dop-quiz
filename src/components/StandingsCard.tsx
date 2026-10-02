@@ -27,7 +27,7 @@ export const StandingsCard: React.FC<StandingsCardProps> = ({ players, questions
     <div className="w-full mt-4 p-3 rounded-2xl bg-white border-2 border-amber-200 animate-fade-in">
       <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 mb-2 flex items-center justify-between">
         <span>📈 Mellanställning efter fråga {questionIndex + 1}</span>
-        <span className="text-[10px] font-bold text-slate-500 normal-case">lägst vinner</span>
+        <span className="text-[10px] font-bold text-slate-500 normal-case">lägst vinner • spik ger -10</span>
       </h4>
       <div className="space-y-1">
         {rows.map((s) => {
@@ -53,7 +53,9 @@ export const StandingsCard: React.FC<StandingsCardProps> = ({ players, questions
               >
                 {moved > 0 ? `▲${moved}` : moved < 0 ? `▼${-moved}` : '–'}
               </span>
-              <span className="w-14 text-right font-mono font-black text-slate-800">+{s.total}</span>
+              <span className="w-14 text-right font-mono font-black text-slate-800">
+                {s.total > 0 ? `+${s.total}` : s.total}
+              </span>
             </div>
           );
         })}
